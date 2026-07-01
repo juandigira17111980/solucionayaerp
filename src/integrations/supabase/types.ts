@@ -2461,6 +2461,128 @@ export type Database = {
         Args: { _po_id: string }
         Returns: undefined
       }
+      report_ap_aging: {
+        Args: { _company_id: string }
+        Returns: {
+          bucket: string
+          doc_count: number
+          total: number
+        }[]
+      }
+      report_ar_aging: {
+        Args: { _company_id: string }
+        Returns: {
+          bucket: string
+          doc_count: number
+          total: number
+        }[]
+      }
+      report_cashflow_by_day: {
+        Args: { _company_id: string; _from: string; _to: string }
+        Returns: {
+          day: string
+          inflow: number
+          net: number
+          outflow: number
+        }[]
+      }
+      report_expenses_by_category: {
+        Args: { _company_id: string; _from: string; _to: string }
+        Returns: {
+          category: string
+          doc_count: number
+          total: number
+        }[]
+      }
+      report_inventory_value: {
+        Args: { _company_id: string }
+        Returns: {
+          sku_count: number
+          total_qty: number
+          total_value: number
+          warehouse_id: string
+          warehouse_name: string
+        }[]
+      }
+      report_low_stock: {
+        Args: { _company_id: string; _limit?: number }
+        Returns: {
+          current_qty: number
+          min_stock: number
+          name: string
+          product_id: string
+          sku: string
+        }[]
+      }
+      report_pnl: {
+        Args: { _company_id: string; _from: string; _to: string }
+        Returns: {
+          cogs: number
+          expenses: number
+          gross_profit: number
+          net_profit: number
+          revenue: number
+        }[]
+      }
+      report_purchases_summary: {
+        Args: { _company_id: string; _from: string; _to: string }
+        Returns: {
+          avg_order: number
+          total_orders: number
+          total_purchases: number
+        }[]
+      }
+      report_sales_by_day: {
+        Args: { _company_id: string; _from: string; _to: string }
+        Returns: {
+          day: string
+          orders: number
+          total: number
+        }[]
+      }
+      report_sales_summary: {
+        Args: { _company_id: string; _from: string; _to: string }
+        Returns: {
+          avg_ticket: number
+          cash_sales: number
+          credit_sales: number
+          gross_margin: number
+          total_cost: number
+          total_orders: number
+          total_sales: number
+        }[]
+      }
+      report_top_customers: {
+        Args: {
+          _company_id: string
+          _from: string
+          _limit?: number
+          _to: string
+        }
+        Returns: {
+          customer_id: string
+          name: string
+          orders: number
+          revenue: number
+        }[]
+      }
+      report_top_products: {
+        Args: {
+          _company_id: string
+          _from: string
+          _limit?: number
+          _to: string
+        }
+        Returns: {
+          cost: number
+          margin: number
+          name: string
+          product_id: string
+          qty: number
+          revenue: number
+          sku: string
+        }[]
+      }
       seed_chart_of_accounts: {
         Args: { _company_id: string }
         Returns: undefined
