@@ -13,10 +13,12 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppVentasRouteImport } from './routes/app.ventas'
 import { Route as AppUnidadesRouteImport } from './routes/app.unidades'
 import { Route as AppTercerosRouteImport } from './routes/app.terceros'
 import { Route as AppSeguridadRouteImport } from './routes/app.seguridad'
 import { Route as AppProductosRouteImport } from './routes/app.productos'
+import { Route as AppPosRouteImport } from './routes/app.pos'
 import { Route as AppMarcasRouteImport } from './routes/app.marcas'
 import { Route as AppInventariosRouteImport } from './routes/app.inventarios'
 import { Route as AppGeografiaRouteImport } from './routes/app.geografia'
@@ -46,6 +48,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppVentasRoute = AppVentasRouteImport.update({
+  id: '/ventas',
+  path: '/ventas',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppUnidadesRoute = AppUnidadesRouteImport.update({
   id: '/unidades',
   path: '/unidades',
@@ -64,6 +71,11 @@ const AppSeguridadRoute = AppSeguridadRouteImport.update({
 const AppProductosRoute = AppProductosRouteImport.update({
   id: '/productos',
   path: '/productos',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPosRoute = AppPosRouteImport.update({
+  id: '/pos',
+  path: '/pos',
   getParentRoute: () => AppRoute,
 } as any)
 const AppMarcasRoute = AppMarcasRouteImport.update({
@@ -119,10 +131,12 @@ export interface FileRoutesByFullPath {
   '/app/geografia': typeof AppGeografiaRoute
   '/app/inventarios': typeof AppInventariosRoute
   '/app/marcas': typeof AppMarcasRoute
+  '/app/pos': typeof AppPosRoute
   '/app/productos': typeof AppProductosRoute
   '/app/seguridad': typeof AppSeguridadRoute
   '/app/terceros': typeof AppTercerosRoute
   '/app/unidades': typeof AppUnidadesRoute
+  '/app/ventas': typeof AppVentasRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
@@ -136,10 +150,12 @@ export interface FileRoutesByTo {
   '/app/geografia': typeof AppGeografiaRoute
   '/app/inventarios': typeof AppInventariosRoute
   '/app/marcas': typeof AppMarcasRoute
+  '/app/pos': typeof AppPosRoute
   '/app/productos': typeof AppProductosRoute
   '/app/seguridad': typeof AppSeguridadRoute
   '/app/terceros': typeof AppTercerosRoute
   '/app/unidades': typeof AppUnidadesRoute
+  '/app/ventas': typeof AppVentasRoute
   '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
@@ -155,10 +171,12 @@ export interface FileRoutesById {
   '/app/geografia': typeof AppGeografiaRoute
   '/app/inventarios': typeof AppInventariosRoute
   '/app/marcas': typeof AppMarcasRoute
+  '/app/pos': typeof AppPosRoute
   '/app/productos': typeof AppProductosRoute
   '/app/seguridad': typeof AppSeguridadRoute
   '/app/terceros': typeof AppTercerosRoute
   '/app/unidades': typeof AppUnidadesRoute
+  '/app/ventas': typeof AppVentasRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
@@ -175,10 +193,12 @@ export interface FileRouteTypes {
     | '/app/geografia'
     | '/app/inventarios'
     | '/app/marcas'
+    | '/app/pos'
     | '/app/productos'
     | '/app/seguridad'
     | '/app/terceros'
     | '/app/unidades'
+    | '/app/ventas'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -192,10 +212,12 @@ export interface FileRouteTypes {
     | '/app/geografia'
     | '/app/inventarios'
     | '/app/marcas'
+    | '/app/pos'
     | '/app/productos'
     | '/app/seguridad'
     | '/app/terceros'
     | '/app/unidades'
+    | '/app/ventas'
     | '/app'
   id:
     | '__root__'
@@ -210,10 +232,12 @@ export interface FileRouteTypes {
     | '/app/geografia'
     | '/app/inventarios'
     | '/app/marcas'
+    | '/app/pos'
     | '/app/productos'
     | '/app/seguridad'
     | '/app/terceros'
     | '/app/unidades'
+    | '/app/ventas'
     | '/app/'
   fileRoutesById: FileRoutesById
 }
@@ -253,6 +277,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/ventas': {
+      id: '/app/ventas'
+      path: '/ventas'
+      fullPath: '/app/ventas'
+      preLoaderRoute: typeof AppVentasRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/unidades': {
       id: '/app/unidades'
       path: '/unidades'
@@ -279,6 +310,13 @@ declare module '@tanstack/react-router' {
       path: '/productos'
       fullPath: '/app/productos'
       preLoaderRoute: typeof AppProductosRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/pos': {
+      id: '/app/pos'
+      path: '/pos'
+      fullPath: '/app/pos'
+      preLoaderRoute: typeof AppPosRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/marcas': {
@@ -349,10 +387,12 @@ interface AppRouteChildren {
   AppGeografiaRoute: typeof AppGeografiaRoute
   AppInventariosRoute: typeof AppInventariosRoute
   AppMarcasRoute: typeof AppMarcasRoute
+  AppPosRoute: typeof AppPosRoute
   AppProductosRoute: typeof AppProductosRoute
   AppSeguridadRoute: typeof AppSeguridadRoute
   AppTercerosRoute: typeof AppTercerosRoute
   AppUnidadesRoute: typeof AppUnidadesRoute
+  AppVentasRoute: typeof AppVentasRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
@@ -365,10 +405,12 @@ const AppRouteChildren: AppRouteChildren = {
   AppGeografiaRoute: AppGeografiaRoute,
   AppInventariosRoute: AppInventariosRoute,
   AppMarcasRoute: AppMarcasRoute,
+  AppPosRoute: AppPosRoute,
   AppProductosRoute: AppProductosRoute,
   AppSeguridadRoute: AppSeguridadRoute,
   AppTercerosRoute: AppTercerosRoute,
   AppUnidadesRoute: AppUnidadesRoute,
+  AppVentasRoute: AppVentasRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
