@@ -18,6 +18,7 @@ import { Route as AppUnidadesRouteImport } from './routes/app.unidades'
 import { Route as AppTercerosRouteImport } from './routes/app.terceros'
 import { Route as AppSeguridadRouteImport } from './routes/app.seguridad'
 import { Route as AppProductosRouteImport } from './routes/app.productos'
+import { Route as AppPosRouteImport } from './routes/app.pos'
 import { Route as AppMarcasRouteImport } from './routes/app.marcas'
 import { Route as AppInventariosRouteImport } from './routes/app.inventarios'
 import { Route as AppGeografiaRouteImport } from './routes/app.geografia'
@@ -70,6 +71,11 @@ const AppSeguridadRoute = AppSeguridadRouteImport.update({
 const AppProductosRoute = AppProductosRouteImport.update({
   id: '/productos',
   path: '/productos',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPosRoute = AppPosRouteImport.update({
+  id: '/pos',
+  path: '/pos',
   getParentRoute: () => AppRoute,
 } as any)
 const AppMarcasRoute = AppMarcasRouteImport.update({
@@ -125,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/app/geografia': typeof AppGeografiaRoute
   '/app/inventarios': typeof AppInventariosRoute
   '/app/marcas': typeof AppMarcasRoute
+  '/app/pos': typeof AppPosRoute
   '/app/productos': typeof AppProductosRoute
   '/app/seguridad': typeof AppSeguridadRoute
   '/app/terceros': typeof AppTercerosRoute
@@ -143,6 +150,7 @@ export interface FileRoutesByTo {
   '/app/geografia': typeof AppGeografiaRoute
   '/app/inventarios': typeof AppInventariosRoute
   '/app/marcas': typeof AppMarcasRoute
+  '/app/pos': typeof AppPosRoute
   '/app/productos': typeof AppProductosRoute
   '/app/seguridad': typeof AppSeguridadRoute
   '/app/terceros': typeof AppTercerosRoute
@@ -163,6 +171,7 @@ export interface FileRoutesById {
   '/app/geografia': typeof AppGeografiaRoute
   '/app/inventarios': typeof AppInventariosRoute
   '/app/marcas': typeof AppMarcasRoute
+  '/app/pos': typeof AppPosRoute
   '/app/productos': typeof AppProductosRoute
   '/app/seguridad': typeof AppSeguridadRoute
   '/app/terceros': typeof AppTercerosRoute
@@ -184,6 +193,7 @@ export interface FileRouteTypes {
     | '/app/geografia'
     | '/app/inventarios'
     | '/app/marcas'
+    | '/app/pos'
     | '/app/productos'
     | '/app/seguridad'
     | '/app/terceros'
@@ -202,6 +212,7 @@ export interface FileRouteTypes {
     | '/app/geografia'
     | '/app/inventarios'
     | '/app/marcas'
+    | '/app/pos'
     | '/app/productos'
     | '/app/seguridad'
     | '/app/terceros'
@@ -221,6 +232,7 @@ export interface FileRouteTypes {
     | '/app/geografia'
     | '/app/inventarios'
     | '/app/marcas'
+    | '/app/pos'
     | '/app/productos'
     | '/app/seguridad'
     | '/app/terceros'
@@ -300,6 +312,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProductosRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/pos': {
+      id: '/app/pos'
+      path: '/pos'
+      fullPath: '/app/pos'
+      preLoaderRoute: typeof AppPosRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/marcas': {
       id: '/app/marcas'
       path: '/marcas'
@@ -368,6 +387,7 @@ interface AppRouteChildren {
   AppGeografiaRoute: typeof AppGeografiaRoute
   AppInventariosRoute: typeof AppInventariosRoute
   AppMarcasRoute: typeof AppMarcasRoute
+  AppPosRoute: typeof AppPosRoute
   AppProductosRoute: typeof AppProductosRoute
   AppSeguridadRoute: typeof AppSeguridadRoute
   AppTercerosRoute: typeof AppTercerosRoute
@@ -385,6 +405,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppGeografiaRoute: AppGeografiaRoute,
   AppInventariosRoute: AppInventariosRoute,
   AppMarcasRoute: AppMarcasRoute,
+  AppPosRoute: AppPosRoute,
   AppProductosRoute: AppProductosRoute,
   AppSeguridadRoute: AppSeguridadRoute,
   AppTercerosRoute: AppTercerosRoute,
