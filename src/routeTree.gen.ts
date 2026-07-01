@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppVentasRouteImport } from './routes/app.ventas'
 import { Route as AppUnidadesRouteImport } from './routes/app.unidades'
 import { Route as AppTercerosRouteImport } from './routes/app.terceros'
 import { Route as AppSeguridadRouteImport } from './routes/app.seguridad'
@@ -44,6 +45,11 @@ const IndexRoute = IndexRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppVentasRoute = AppVentasRouteImport.update({
+  id: '/ventas',
+  path: '/ventas',
   getParentRoute: () => AppRoute,
 } as any)
 const AppUnidadesRoute = AppUnidadesRouteImport.update({
@@ -123,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/app/seguridad': typeof AppSeguridadRoute
   '/app/terceros': typeof AppTercerosRoute
   '/app/unidades': typeof AppUnidadesRoute
+  '/app/ventas': typeof AppVentasRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
@@ -140,6 +147,7 @@ export interface FileRoutesByTo {
   '/app/seguridad': typeof AppSeguridadRoute
   '/app/terceros': typeof AppTercerosRoute
   '/app/unidades': typeof AppUnidadesRoute
+  '/app/ventas': typeof AppVentasRoute
   '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
@@ -159,6 +167,7 @@ export interface FileRoutesById {
   '/app/seguridad': typeof AppSeguridadRoute
   '/app/terceros': typeof AppTercerosRoute
   '/app/unidades': typeof AppUnidadesRoute
+  '/app/ventas': typeof AppVentasRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
@@ -179,6 +188,7 @@ export interface FileRouteTypes {
     | '/app/seguridad'
     | '/app/terceros'
     | '/app/unidades'
+    | '/app/ventas'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -196,6 +206,7 @@ export interface FileRouteTypes {
     | '/app/seguridad'
     | '/app/terceros'
     | '/app/unidades'
+    | '/app/ventas'
     | '/app'
   id:
     | '__root__'
@@ -214,6 +225,7 @@ export interface FileRouteTypes {
     | '/app/seguridad'
     | '/app/terceros'
     | '/app/unidades'
+    | '/app/ventas'
     | '/app/'
   fileRoutesById: FileRoutesById
 }
@@ -251,6 +263,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/ventas': {
+      id: '/app/ventas'
+      path: '/ventas'
+      fullPath: '/app/ventas'
+      preLoaderRoute: typeof AppVentasRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/unidades': {
@@ -353,6 +372,7 @@ interface AppRouteChildren {
   AppSeguridadRoute: typeof AppSeguridadRoute
   AppTercerosRoute: typeof AppTercerosRoute
   AppUnidadesRoute: typeof AppUnidadesRoute
+  AppVentasRoute: typeof AppVentasRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
@@ -369,6 +389,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppSeguridadRoute: AppSeguridadRoute,
   AppTercerosRoute: AppTercerosRoute,
   AppUnidadesRoute: AppUnidadesRoute,
+  AppVentasRoute: AppVentasRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
