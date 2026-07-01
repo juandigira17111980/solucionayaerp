@@ -232,6 +232,250 @@ export type Database = {
           },
         ]
       }
+      inventory_movement_lines: {
+        Row: {
+          created_at: string
+          id: string
+          lot_id: string | null
+          movement_id: string
+          notes: string | null
+          product_id: string
+          quantity: number
+          serial_number: string | null
+          unit_cost: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lot_id?: string | null
+          movement_id: string
+          notes?: string | null
+          product_id: string
+          quantity: number
+          serial_number?: string | null
+          unit_cost?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lot_id?: string | null
+          movement_id?: string
+          notes?: string | null
+          product_id?: string
+          quantity?: number
+          serial_number?: string | null
+          unit_cost?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_movement_lines_lot_id_fkey"
+            columns: ["lot_id"]
+            isOneToOne: false
+            referencedRelation: "product_lots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_movement_lines_movement_id_fkey"
+            columns: ["movement_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_movements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_movement_lines_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_movements: {
+        Row: {
+          company_id: string
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string
+          created_by: string | null
+          doc_number: string
+          id: string
+          movement_date: string
+          movement_type: Database["public"]["Enums"]["movement_type"]
+          notes: string | null
+          reference: string | null
+          status: Database["public"]["Enums"]["movement_status"]
+          third_party_id: string | null
+          updated_at: string
+          warehouse_from_id: string | null
+          warehouse_to_id: string | null
+        }
+        Insert: {
+          company_id: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          doc_number: string
+          id?: string
+          movement_date?: string
+          movement_type: Database["public"]["Enums"]["movement_type"]
+          notes?: string | null
+          reference?: string | null
+          status?: Database["public"]["Enums"]["movement_status"]
+          third_party_id?: string | null
+          updated_at?: string
+          warehouse_from_id?: string | null
+          warehouse_to_id?: string | null
+        }
+        Update: {
+          company_id?: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          doc_number?: string
+          id?: string
+          movement_date?: string
+          movement_type?: Database["public"]["Enums"]["movement_type"]
+          notes?: string | null
+          reference?: string | null
+          status?: Database["public"]["Enums"]["movement_status"]
+          third_party_id?: string | null
+          updated_at?: string
+          warehouse_from_id?: string | null
+          warehouse_to_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_movements_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_movements_third_party_id_fkey"
+            columns: ["third_party_id"]
+            isOneToOne: false
+            referencedRelation: "third_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_movements_warehouse_from_id_fkey"
+            columns: ["warehouse_from_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_movements_warehouse_to_id_fkey"
+            columns: ["warehouse_to_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kardex: {
+        Row: {
+          balance_avg_cost: number
+          balance_qty: number
+          balance_value: number
+          company_id: string
+          created_at: string
+          direction: Database["public"]["Enums"]["kardex_direction"]
+          id: string
+          lot_id: string | null
+          movement_date: string
+          movement_id: string
+          movement_line_id: string | null
+          product_id: string
+          quantity: number
+          total_cost: number
+          unit_cost: number
+          warehouse_id: string
+        }
+        Insert: {
+          balance_avg_cost: number
+          balance_qty: number
+          balance_value: number
+          company_id: string
+          created_at?: string
+          direction: Database["public"]["Enums"]["kardex_direction"]
+          id?: string
+          lot_id?: string | null
+          movement_date: string
+          movement_id: string
+          movement_line_id?: string | null
+          product_id: string
+          quantity: number
+          total_cost: number
+          unit_cost: number
+          warehouse_id: string
+        }
+        Update: {
+          balance_avg_cost?: number
+          balance_qty?: number
+          balance_value?: number
+          company_id?: string
+          created_at?: string
+          direction?: Database["public"]["Enums"]["kardex_direction"]
+          id?: string
+          lot_id?: string | null
+          movement_date?: string
+          movement_id?: string
+          movement_line_id?: string | null
+          product_id?: string
+          quantity?: number
+          total_cost?: number
+          unit_cost?: number
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kardex_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kardex_lot_id_fkey"
+            columns: ["lot_id"]
+            isOneToOne: false
+            referencedRelation: "product_lots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kardex_movement_id_fkey"
+            columns: ["movement_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_movements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kardex_movement_line_id_fkey"
+            columns: ["movement_line_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_movement_lines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kardex_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kardex_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_categories: {
         Row: {
           code: string | null
@@ -276,6 +520,51 @@ export type Database = {
             columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_lots: {
+        Row: {
+          company_id: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          lot_code: string
+          notes: string | null
+          product_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          lot_code: string
+          notes?: string | null
+          product_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          lot_code?: string
+          notes?: string | null
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_lots_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_lots_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
@@ -401,6 +690,58 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      stock: {
+        Row: {
+          avg_cost: number
+          company_id: string
+          id: string
+          product_id: string
+          quantity: number
+          updated_at: string
+          warehouse_id: string
+        }
+        Insert: {
+          avg_cost?: number
+          company_id: string
+          id?: string
+          product_id: string
+          quantity?: number
+          updated_at?: string
+          warehouse_id: string
+        }
+        Update: {
+          avg_cost?: number
+          company_id?: string
+          id?: string
+          product_id?: string
+          quantity?: number
+          updated_at?: string
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       third_parties: {
         Row: {
@@ -622,6 +963,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      confirm_inventory_movement: {
+        Args: { _movement_id: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -632,6 +977,13 @@ export type Database = {
       is_company_member: {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
+      }
+      next_movement_number: {
+        Args: {
+          _company_id: string
+          _type: Database["public"]["Enums"]["movement_type"]
+        }
+        Returns: string
       }
     }
     Enums: {
@@ -645,6 +997,14 @@ export type Database = {
         | "bodeguero"
         | "usuario"
       document_type: "NIT" | "CC" | "CE" | "PP" | "TI" | "RUT" | "OTRO"
+      kardex_direction: "in" | "out"
+      movement_status: "borrador" | "confirmado" | "anulado"
+      movement_type:
+        | "entrada"
+        | "salida"
+        | "traslado"
+        | "ajuste_positivo"
+        | "ajuste_negativo"
       third_party_kind:
         | "cliente"
         | "proveedor"
@@ -790,6 +1150,15 @@ export const Constants = {
         "usuario",
       ],
       document_type: ["NIT", "CC", "CE", "PP", "TI", "RUT", "OTRO"],
+      kardex_direction: ["in", "out"],
+      movement_status: ["borrador", "confirmado", "anulado"],
+      movement_type: [
+        "entrada",
+        "salida",
+        "traslado",
+        "ajuste_positivo",
+        "ajuste_negativo",
+      ],
       third_party_kind: [
         "cliente",
         "proveedor",
