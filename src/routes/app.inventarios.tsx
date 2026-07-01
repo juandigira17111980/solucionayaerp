@@ -55,7 +55,7 @@ function InventariosPage() {
       <div>
         <PageHeader eyebrow="Operación" title="Inventarios" description="Kardex, movimientos, existencias y costeo promedio ponderado." />
         <EmptyState
-          icon={<Boxes className="size-6" />}
+          icon={Boxes}
           title="Sin empresa activa"
           description="Selecciona o crea una empresa para operar inventarios."
         />
@@ -719,7 +719,7 @@ function KardexTab({ companyId }: { companyId: string }) {
         </Select>
       </div>
 
-      {!productId && <EmptyState icon={<TrendingUp className="size-6" />} title="Selecciona un producto" description="El kardex muestra el detalle de entradas y salidas con saldo y costo promedio." />}
+      {!productId && <EmptyState icon={TrendingUp} title="Selecciona un producto" description="El kardex muestra el detalle de entradas y salidas con saldo y costo promedio." />}
 
       {productId && (
         <div className="rounded-lg border border-border bg-surface">
