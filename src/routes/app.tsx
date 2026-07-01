@@ -51,7 +51,7 @@ const NAV: NavGroup[] = [
     label: "Operación",
     items: [
       { label: "Bodegas", to: "/app/bodegas", icon: Warehouse },
-      { label: "Inventarios", to: "/app/inventarios", icon: Boxes, badge: "Fase 2" },
+      { label: "Inventarios", to: "/app/inventarios", icon: Boxes },
     ],
   },
   {
