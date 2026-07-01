@@ -20,10 +20,13 @@ import { Route as AppTercerosRouteImport } from './routes/app.terceros'
 import { Route as AppSeguridadRouteImport } from './routes/app.seguridad'
 import { Route as AppProductosRouteImport } from './routes/app.productos'
 import { Route as AppPosRouteImport } from './routes/app.pos'
+import { Route as AppNominaRouteImport } from './routes/app.nomina'
 import { Route as AppMarcasRouteImport } from './routes/app.marcas'
 import { Route as AppInventariosRouteImport } from './routes/app.inventarios'
 import { Route as AppGeografiaRouteImport } from './routes/app.geografia'
+import { Route as AppGastosRouteImport } from './routes/app.gastos'
 import { Route as AppEmpresasRouteImport } from './routes/app.empresas'
+import { Route as AppContabilidadRouteImport } from './routes/app.contabilidad'
 import { Route as AppConfiguracionRouteImport } from './routes/app.configuracion'
 import { Route as AppComprasRouteImport } from './routes/app.compras'
 import { Route as AppCategoriasRouteImport } from './routes/app.categorias'
@@ -84,6 +87,11 @@ const AppPosRoute = AppPosRouteImport.update({
   path: '/pos',
   getParentRoute: () => AppRoute,
 } as any)
+const AppNominaRoute = AppNominaRouteImport.update({
+  id: '/nomina',
+  path: '/nomina',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppMarcasRoute = AppMarcasRouteImport.update({
   id: '/marcas',
   path: '/marcas',
@@ -99,9 +107,19 @@ const AppGeografiaRoute = AppGeografiaRouteImport.update({
   path: '/geografia',
   getParentRoute: () => AppRoute,
 } as any)
+const AppGastosRoute = AppGastosRouteImport.update({
+  id: '/gastos',
+  path: '/gastos',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppEmpresasRoute = AppEmpresasRouteImport.update({
   id: '/empresas',
   path: '/empresas',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppContabilidadRoute = AppContabilidadRouteImport.update({
+  id: '/contabilidad',
+  path: '/contabilidad',
   getParentRoute: () => AppRoute,
 } as any)
 const AppConfiguracionRoute = AppConfiguracionRouteImport.update({
@@ -133,10 +151,13 @@ export interface FileRoutesByFullPath {
   '/app/categorias': typeof AppCategoriasRoute
   '/app/compras': typeof AppComprasRoute
   '/app/configuracion': typeof AppConfiguracionRoute
+  '/app/contabilidad': typeof AppContabilidadRoute
   '/app/empresas': typeof AppEmpresasRoute
+  '/app/gastos': typeof AppGastosRoute
   '/app/geografia': typeof AppGeografiaRoute
   '/app/inventarios': typeof AppInventariosRoute
   '/app/marcas': typeof AppMarcasRoute
+  '/app/nomina': typeof AppNominaRoute
   '/app/pos': typeof AppPosRoute
   '/app/productos': typeof AppProductosRoute
   '/app/seguridad': typeof AppSeguridadRoute
@@ -153,10 +174,13 @@ export interface FileRoutesByTo {
   '/app/categorias': typeof AppCategoriasRoute
   '/app/compras': typeof AppComprasRoute
   '/app/configuracion': typeof AppConfiguracionRoute
+  '/app/contabilidad': typeof AppContabilidadRoute
   '/app/empresas': typeof AppEmpresasRoute
+  '/app/gastos': typeof AppGastosRoute
   '/app/geografia': typeof AppGeografiaRoute
   '/app/inventarios': typeof AppInventariosRoute
   '/app/marcas': typeof AppMarcasRoute
+  '/app/nomina': typeof AppNominaRoute
   '/app/pos': typeof AppPosRoute
   '/app/productos': typeof AppProductosRoute
   '/app/seguridad': typeof AppSeguridadRoute
@@ -175,10 +199,13 @@ export interface FileRoutesById {
   '/app/categorias': typeof AppCategoriasRoute
   '/app/compras': typeof AppComprasRoute
   '/app/configuracion': typeof AppConfiguracionRoute
+  '/app/contabilidad': typeof AppContabilidadRoute
   '/app/empresas': typeof AppEmpresasRoute
+  '/app/gastos': typeof AppGastosRoute
   '/app/geografia': typeof AppGeografiaRoute
   '/app/inventarios': typeof AppInventariosRoute
   '/app/marcas': typeof AppMarcasRoute
+  '/app/nomina': typeof AppNominaRoute
   '/app/pos': typeof AppPosRoute
   '/app/productos': typeof AppProductosRoute
   '/app/seguridad': typeof AppSeguridadRoute
@@ -198,10 +225,13 @@ export interface FileRouteTypes {
     | '/app/categorias'
     | '/app/compras'
     | '/app/configuracion'
+    | '/app/contabilidad'
     | '/app/empresas'
+    | '/app/gastos'
     | '/app/geografia'
     | '/app/inventarios'
     | '/app/marcas'
+    | '/app/nomina'
     | '/app/pos'
     | '/app/productos'
     | '/app/seguridad'
@@ -218,10 +248,13 @@ export interface FileRouteTypes {
     | '/app/categorias'
     | '/app/compras'
     | '/app/configuracion'
+    | '/app/contabilidad'
     | '/app/empresas'
+    | '/app/gastos'
     | '/app/geografia'
     | '/app/inventarios'
     | '/app/marcas'
+    | '/app/nomina'
     | '/app/pos'
     | '/app/productos'
     | '/app/seguridad'
@@ -239,10 +272,13 @@ export interface FileRouteTypes {
     | '/app/categorias'
     | '/app/compras'
     | '/app/configuracion'
+    | '/app/contabilidad'
     | '/app/empresas'
+    | '/app/gastos'
     | '/app/geografia'
     | '/app/inventarios'
     | '/app/marcas'
+    | '/app/nomina'
     | '/app/pos'
     | '/app/productos'
     | '/app/seguridad'
@@ -338,6 +374,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPosRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/nomina': {
+      id: '/app/nomina'
+      path: '/nomina'
+      fullPath: '/app/nomina'
+      preLoaderRoute: typeof AppNominaRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/marcas': {
       id: '/app/marcas'
       path: '/marcas'
@@ -359,11 +402,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppGeografiaRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/gastos': {
+      id: '/app/gastos'
+      path: '/gastos'
+      fullPath: '/app/gastos'
+      preLoaderRoute: typeof AppGastosRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/empresas': {
       id: '/app/empresas'
       path: '/empresas'
       fullPath: '/app/empresas'
       preLoaderRoute: typeof AppEmpresasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/contabilidad': {
+      id: '/app/contabilidad'
+      path: '/contabilidad'
+      fullPath: '/app/contabilidad'
+      preLoaderRoute: typeof AppContabilidadRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/configuracion': {
@@ -402,10 +459,13 @@ interface AppRouteChildren {
   AppCategoriasRoute: typeof AppCategoriasRoute
   AppComprasRoute: typeof AppComprasRoute
   AppConfiguracionRoute: typeof AppConfiguracionRoute
+  AppContabilidadRoute: typeof AppContabilidadRoute
   AppEmpresasRoute: typeof AppEmpresasRoute
+  AppGastosRoute: typeof AppGastosRoute
   AppGeografiaRoute: typeof AppGeografiaRoute
   AppInventariosRoute: typeof AppInventariosRoute
   AppMarcasRoute: typeof AppMarcasRoute
+  AppNominaRoute: typeof AppNominaRoute
   AppPosRoute: typeof AppPosRoute
   AppProductosRoute: typeof AppProductosRoute
   AppSeguridadRoute: typeof AppSeguridadRoute
@@ -421,10 +481,13 @@ const AppRouteChildren: AppRouteChildren = {
   AppCategoriasRoute: AppCategoriasRoute,
   AppComprasRoute: AppComprasRoute,
   AppConfiguracionRoute: AppConfiguracionRoute,
+  AppContabilidadRoute: AppContabilidadRoute,
   AppEmpresasRoute: AppEmpresasRoute,
+  AppGastosRoute: AppGastosRoute,
   AppGeografiaRoute: AppGeografiaRoute,
   AppInventariosRoute: AppInventariosRoute,
   AppMarcasRoute: AppMarcasRoute,
+  AppNominaRoute: AppNominaRoute,
   AppPosRoute: AppPosRoute,
   AppProductosRoute: AppProductosRoute,
   AppSeguridadRoute: AppSeguridadRoute,
