@@ -32,6 +32,7 @@ import { Route as AppConfiguracionRouteImport } from './routes/app.configuracion
 import { Route as AppComprasRouteImport } from './routes/app.compras'
 import { Route as AppCategoriasRouteImport } from './routes/app.categorias'
 import { Route as AppBodegasRouteImport } from './routes/app.bodegas'
+import { Route as AppAsistenteRouteImport } from './routes/app.asistente'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 
 const AuthRoute = AuthRouteImport.update({
@@ -149,6 +150,11 @@ const AppBodegasRoute = AppBodegasRouteImport.update({
   path: '/bodegas',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAsistenteRoute = AppAsistenteRouteImport.update({
+  id: '/asistente',
+  path: '/asistente',
+  getParentRoute: () => AppRoute,
+} as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
@@ -160,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/api/chat': typeof ApiChatRoute
+  '/app/asistente': typeof AppAsistenteRoute
   '/app/bodegas': typeof AppBodegasRoute
   '/app/categorias': typeof AppCategoriasRoute
   '/app/compras': typeof AppComprasRoute
@@ -185,6 +192,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/api/chat': typeof ApiChatRoute
+  '/app/asistente': typeof AppAsistenteRoute
   '/app/bodegas': typeof AppBodegasRoute
   '/app/categorias': typeof AppCategoriasRoute
   '/app/compras': typeof AppComprasRoute
@@ -212,6 +220,7 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/api/chat': typeof ApiChatRoute
+  '/app/asistente': typeof AppAsistenteRoute
   '/app/bodegas': typeof AppBodegasRoute
   '/app/categorias': typeof AppCategoriasRoute
   '/app/compras': typeof AppComprasRoute
@@ -240,6 +249,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/api/chat'
+    | '/app/asistente'
     | '/app/bodegas'
     | '/app/categorias'
     | '/app/compras'
@@ -265,6 +275,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/api/chat'
+    | '/app/asistente'
     | '/app/bodegas'
     | '/app/categorias'
     | '/app/compras'
@@ -291,6 +302,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/api/chat'
+    | '/app/asistente'
     | '/app/bodegas'
     | '/app/categorias'
     | '/app/compras'
@@ -483,6 +495,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBodegasRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/asistente': {
+      id: '/app/asistente'
+      path: '/asistente'
+      fullPath: '/app/asistente'
+      preLoaderRoute: typeof AppAsistenteRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/api/chat': {
       id: '/api/chat'
       path: '/api/chat'
@@ -494,6 +513,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppAsistenteRoute: typeof AppAsistenteRoute
   AppBodegasRoute: typeof AppBodegasRoute
   AppCategoriasRoute: typeof AppCategoriasRoute
   AppComprasRoute: typeof AppComprasRoute
@@ -517,6 +537,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAsistenteRoute: AppAsistenteRoute,
   AppBodegasRoute: AppBodegasRoute,
   AppCategoriasRoute: AppCategoriasRoute,
   AppComprasRoute: AppComprasRoute,
