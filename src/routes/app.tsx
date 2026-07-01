@@ -4,7 +4,7 @@ import {
   Building2, Warehouse, Boxes, Users, LayoutDashboard, Settings, LogOut,
   Package, Tags, Factory, Ruler, MapPin, ShieldCheck, ChevronDown, Search,
   Menu, X, Sparkles, ShoppingCart, ShoppingBag, Store, Wallet,
-  Receipt, BookOpen, UsersRound, BarChart3,
+  Receipt, BookOpen, UsersRound, BarChart3, Bot, Bell,
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
