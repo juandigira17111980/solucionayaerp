@@ -74,21 +74,21 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "accounts_payable_company_id_fkey"
+            foreignKeyName: "ap_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "accounts_payable_receipt_id_fkey"
+            foreignKeyName: "ap_receipt_id_fkey"
             columns: ["receipt_id"]
             isOneToOne: false
             referencedRelation: "purchase_receipts"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "accounts_payable_supplier_id_fkey"
+            foreignKeyName: "ap_supplier_id_fkey"
             columns: ["supplier_id"]
             isOneToOne: false
             referencedRelation: "third_parties"
@@ -153,21 +153,21 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "accounts_receivable_company_id_fkey"
+            foreignKeyName: "ar_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "accounts_receivable_customer_id_fkey"
+            foreignKeyName: "ar_customer_id_fkey"
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "third_parties"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "accounts_receivable_sales_order_id_fkey"
+            foreignKeyName: "ar_sales_order_id_fkey"
             columns: ["sales_order_id"]
             isOneToOne: false
             referencedRelation: "sales_orders"
@@ -205,7 +205,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "ai_conversations_company_id_fkey"
+            foreignKeyName: "ai_conv_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
@@ -237,7 +237,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "ai_messages_conversation_id_fkey"
+            foreignKeyName: "ai_msg_conv_id_fkey"
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "ai_conversations"
@@ -284,7 +284,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "audit_logs_company_id_fkey"
+            foreignKeyName: "audit_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
@@ -340,7 +340,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "bank_accounts_company_id_fkey"
+            foreignKeyName: "ba_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
@@ -425,14 +425,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "chart_of_accounts_company_id_fkey"
+            foreignKeyName: "coa_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "chart_of_accounts_parent_id_fkey"
+            foreignKeyName: "coa_parent_id_fkey"
             columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "chart_of_accounts"
@@ -636,7 +636,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "employees_company_id_fkey"
+            foreignKeyName: "emp_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
@@ -728,49 +728,49 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "expenses_ap_id_fkey"
+            foreignKeyName: "exp_ap_id_fkey"
             columns: ["ap_id"]
             isOneToOne: false
             referencedRelation: "accounts_payable"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "expenses_bank_account_id_fkey"
+            foreignKeyName: "exp_bank_account_id_fkey"
             columns: ["bank_account_id"]
             isOneToOne: false
             referencedRelation: "bank_accounts"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "expenses_company_id_fkey"
+            foreignKeyName: "exp_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "expenses_expense_account_id_fkey"
+            foreignKeyName: "exp_expense_account_id_fkey"
             columns: ["expense_account_id"]
             isOneToOne: false
             referencedRelation: "chart_of_accounts"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "expenses_journal_entry_id_fkey"
+            foreignKeyName: "exp_je_id_fkey"
             columns: ["journal_entry_id"]
             isOneToOne: false
             referencedRelation: "journal_entries"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "expenses_supplier_id_fkey"
+            foreignKeyName: "exp_supplier_id_fkey"
             columns: ["supplier_id"]
             isOneToOne: false
             referencedRelation: "third_parties"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "expenses_treasury_txn_id_fkey"
+            foreignKeyName: "exp_tx_id_fkey"
             columns: ["treasury_txn_id"]
             isOneToOne: false
             referencedRelation: "treasury_transactions"
@@ -814,21 +814,21 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "inventory_movement_lines_lot_id_fkey"
+            foreignKeyName: "iml_lot_id_fkey"
             columns: ["lot_id"]
             isOneToOne: false
             referencedRelation: "product_lots"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "inventory_movement_lines_movement_id_fkey"
+            foreignKeyName: "iml_movement_id_fkey"
             columns: ["movement_id"]
             isOneToOne: false
             referencedRelation: "inventory_movements"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "inventory_movement_lines_product_id_fkey"
+            foreignKeyName: "iml_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
@@ -907,14 +907,14 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "inventory_movements_warehouse_from_id_fkey"
+            foreignKeyName: "inventory_movements_wh_from_fkey"
             columns: ["warehouse_from_id"]
             isOneToOne: false
             referencedRelation: "warehouses"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "inventory_movements_warehouse_to_id_fkey"
+            foreignKeyName: "inventory_movements_wh_to_fkey"
             columns: ["warehouse_to_id"]
             isOneToOne: false
             referencedRelation: "warehouses"
@@ -979,7 +979,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "journal_entries_company_id_fkey"
+            foreignKeyName: "je_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
@@ -1020,21 +1020,21 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "journal_entry_lines_account_id_fkey"
+            foreignKeyName: "jel_account_id_fkey"
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "chart_of_accounts"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "journal_entry_lines_journal_entry_id_fkey"
+            foreignKeyName: "jel_je_id_fkey"
             columns: ["journal_entry_id"]
             isOneToOne: false
             referencedRelation: "journal_entries"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "journal_entry_lines_third_party_id_fkey"
+            foreignKeyName: "jel_third_party_id_fkey"
             columns: ["third_party_id"]
             isOneToOne: false
             referencedRelation: "third_parties"
@@ -1169,21 +1169,21 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "payment_applications_ap_id_fkey"
+            foreignKeyName: "pa_ap_id_fkey"
             columns: ["ap_id"]
             isOneToOne: false
             referencedRelation: "accounts_payable"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "payment_applications_ar_id_fkey"
+            foreignKeyName: "pa_ar_id_fkey"
             columns: ["ar_id"]
             isOneToOne: false
             referencedRelation: "accounts_receivable"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "payment_applications_treasury_txn_id_fkey"
+            foreignKeyName: "pa_tx_id_fkey"
             columns: ["treasury_txn_id"]
             isOneToOne: false
             referencedRelation: "treasury_transactions"
@@ -1242,14 +1242,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "payroll_items_employee_id_fkey"
+            foreignKeyName: "pi_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "payroll_items_payroll_period_id_fkey"
+            foreignKeyName: "pi_period_id_fkey"
             columns: ["payroll_period_id"]
             isOneToOne: false
             referencedRelation: "payroll_periods"
@@ -1323,14 +1323,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "payroll_periods_company_id_fkey"
+            foreignKeyName: "pp_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "payroll_periods_journal_entry_id_fkey"
+            foreignKeyName: "pp_je_id_fkey"
             columns: ["journal_entry_id"]
             isOneToOne: false
             referencedRelation: "journal_entries"
@@ -1395,14 +1395,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "pos_sessions_company_id_fkey"
+            foreignKeyName: "pos_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "pos_sessions_warehouse_id_fkey"
+            foreignKeyName: "pos_warehouse_id_fkey"
             columns: ["warehouse_id"]
             isOneToOne: false
             referencedRelation: "warehouses"
@@ -1664,17 +1664,17 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "purchase_order_lines_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "purchase_order_lines_purchase_order_id_fkey"
+            foreignKeyName: "pol_po_id_fkey"
             columns: ["purchase_order_id"]
             isOneToOne: false
             referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pol_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
@@ -1745,21 +1745,21 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "purchase_orders_company_id_fkey"
+            foreignKeyName: "po_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "purchase_orders_supplier_id_fkey"
+            foreignKeyName: "po_supplier_id_fkey"
             columns: ["supplier_id"]
             isOneToOne: false
             referencedRelation: "third_parties"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "purchase_orders_warehouse_id_fkey"
+            foreignKeyName: "po_warehouse_id_fkey"
             columns: ["warehouse_id"]
             isOneToOne: false
             referencedRelation: "warehouses"
@@ -1800,21 +1800,21 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "purchase_receipt_lines_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "purchase_receipt_lines_purchase_order_line_id_fkey"
+            foreignKeyName: "prl_pol_id_fkey"
             columns: ["purchase_order_line_id"]
             isOneToOne: false
             referencedRelation: "purchase_order_lines"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "purchase_receipt_lines_receipt_id_fkey"
+            foreignKeyName: "prl_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prl_receipt_id_fkey"
             columns: ["receipt_id"]
             isOneToOne: false
             referencedRelation: "purchase_receipts"
@@ -1888,35 +1888,35 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "purchase_receipts_company_id_fkey"
+            foreignKeyName: "pr_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "purchase_receipts_inventory_movement_id_fkey"
+            foreignKeyName: "pr_inv_mov_id_fkey"
             columns: ["inventory_movement_id"]
             isOneToOne: false
             referencedRelation: "inventory_movements"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "purchase_receipts_purchase_order_id_fkey"
+            foreignKeyName: "pr_po_id_fkey"
             columns: ["purchase_order_id"]
             isOneToOne: false
             referencedRelation: "purchase_orders"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "purchase_receipts_supplier_id_fkey"
+            foreignKeyName: "pr_supplier_id_fkey"
             columns: ["supplier_id"]
             isOneToOne: false
             referencedRelation: "third_parties"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "purchase_receipts_warehouse_id_fkey"
+            foreignKeyName: "pr_warehouse_id_fkey"
             columns: ["warehouse_id"]
             isOneToOne: false
             referencedRelation: "warehouses"
@@ -1963,14 +1963,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "sales_order_lines_product_id_fkey"
+            foreignKeyName: "sol_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "sales_order_lines_sales_order_id_fkey"
+            foreignKeyName: "sol_so_id_fkey"
             columns: ["sales_order_id"]
             isOneToOne: false
             referencedRelation: "sales_orders"
@@ -2062,35 +2062,28 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "sales_orders_company_id_fkey"
+            foreignKeyName: "so_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "sales_orders_customer_id_fkey"
+            foreignKeyName: "so_customer_id_fkey"
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "third_parties"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "sales_orders_inventory_movement_id_fkey"
-            columns: ["inventory_movement_id"]
-            isOneToOne: false
-            referencedRelation: "inventory_movements"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "sales_orders_pos_session_fk"
+            foreignKeyName: "so_pos_session_id_fkey"
             columns: ["pos_session_id"]
             isOneToOne: false
             referencedRelation: "pos_sessions"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "sales_orders_warehouse_id_fkey"
+            foreignKeyName: "so_warehouse_id_fkey"
             columns: ["warehouse_id"]
             isOneToOne: false
             referencedRelation: "warehouses"
@@ -2216,13 +2209,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "third_parties_city_id_fkey"
-            columns: ["city_id"]
-            isOneToOne: false
-            referencedRelation: "cities"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "third_parties_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
@@ -2294,28 +2280,21 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "treasury_transactions_bank_account_id_fkey"
+            foreignKeyName: "tt_bank_account_id_fkey"
             columns: ["bank_account_id"]
             isOneToOne: false
             referencedRelation: "bank_accounts"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "treasury_transactions_bank_account_to_id_fkey"
-            columns: ["bank_account_to_id"]
-            isOneToOne: false
-            referencedRelation: "bank_accounts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "treasury_transactions_company_id_fkey"
+            foreignKeyName: "tt_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "treasury_transactions_third_party_id_fkey"
+            foreignKeyName: "tt_third_party_id_fkey"
             columns: ["third_party_id"]
             isOneToOne: false
             referencedRelation: "third_parties"
@@ -2401,7 +2380,15 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       warehouses: {
         Row: {
@@ -2441,13 +2428,6 @@ export type Database = {
           warehouse_type?: Database["public"]["Enums"]["warehouse_type"]
         }
         Relationships: [
-          {
-            foreignKeyName: "warehouses_city_id_fkey"
-            columns: ["city_id"]
-            isOneToOne: false
-            referencedRelation: "cities"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "warehouses_company_id_fkey"
             columns: ["company_id"]
