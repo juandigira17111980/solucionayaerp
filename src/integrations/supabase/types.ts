@@ -175,6 +175,76 @@ export type Database = {
           },
         ]
       }
+      ai_conversations: {
+        Row: {
+          agent: string
+          company_id: string
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent?: string
+          company_id: string
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_conversations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_messages: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          id: string
+          parts: Json
+          role: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          id?: string
+          parts?: Json
+          role: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          parts?: Json
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "ai_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -2532,6 +2602,20 @@ export type Database = {
           total_purchases: number
         }[]
       }
+      report_reorder_suggestions: {
+        Args: { p_company_id: string; p_days?: number }
+        Returns: {
+          avg_daily_sales: number
+          days_of_stock: number
+          min_stock: number
+          name: string
+          product_id: string
+          reason: string
+          sku: string
+          suggested_qty: number
+          total_stock: number
+        }[]
+      }
       report_sales_by_day: {
         Args: { _company_id: string; _from: string; _to: string }
         Returns: {
@@ -2550,6 +2634,17 @@ export type Database = {
           total_cost: number
           total_orders: number
           total_sales: number
+        }[]
+      }
+      report_smart_alerts: {
+        Args: { p_company_id: string }
+        Returns: {
+          amount: number
+          category: string
+          detail: string
+          reference_id: string
+          severity: string
+          title: string
         }[]
       }
       report_top_customers: {
