@@ -77,14 +77,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Soluciona Ya ERP" },
+      { name: "description", content: "Soluciona Ya ERP — sistema de gestión empresarial." },
+      { property: "og:title", content: "Soluciona Ya ERP" },
+      { property: "og:description", content: "Sistema de gestión empresarial." },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "Soluciona Ya ERP" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
