@@ -222,6 +222,62 @@ export type Database = {
           },
         ]
       }
+      bank_accounts: {
+        Row: {
+          account_number: string | null
+          bank_name: string | null
+          company_id: string
+          created_at: string
+          currency: string
+          current_balance: number
+          id: string
+          is_active: boolean
+          kind: Database["public"]["Enums"]["bank_account_kind"]
+          name: string
+          notes: string | null
+          opening_balance: number
+          updated_at: string
+        }
+        Insert: {
+          account_number?: string | null
+          bank_name?: string | null
+          company_id: string
+          created_at?: string
+          currency?: string
+          current_balance?: number
+          id?: string
+          is_active?: boolean
+          kind?: Database["public"]["Enums"]["bank_account_kind"]
+          name: string
+          notes?: string | null
+          opening_balance?: number
+          updated_at?: string
+        }
+        Update: {
+          account_number?: string | null
+          bank_name?: string | null
+          company_id?: string
+          created_at?: string
+          currency?: string
+          current_balance?: number
+          id?: string
+          is_active?: boolean
+          kind?: Database["public"]["Enums"]["bank_account_kind"]
+          name?: string
+          notes?: string | null
+          opening_balance?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_accounts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       brands: {
         Row: {
           company_id: string
@@ -633,6 +689,55 @@ export type Database = {
             columns: ["warehouse_id"]
             isOneToOne: false
             referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_applications: {
+        Row: {
+          amount: number
+          ap_id: string | null
+          ar_id: string | null
+          created_at: string
+          id: string
+          treasury_txn_id: string
+        }
+        Insert: {
+          amount: number
+          ap_id?: string | null
+          ar_id?: string | null
+          created_at?: string
+          id?: string
+          treasury_txn_id: string
+        }
+        Update: {
+          amount?: number
+          ap_id?: string | null
+          ar_id?: string | null
+          created_at?: string
+          id?: string
+          treasury_txn_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_applications_ap_id_fkey"
+            columns: ["ap_id"]
+            isOneToOne: false
+            referencedRelation: "accounts_payable"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_applications_ar_id_fkey"
+            columns: ["ar_id"]
+            isOneToOne: false
+            referencedRelation: "accounts_receivable"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_applications_treasury_txn_id_fkey"
+            columns: ["treasury_txn_id"]
+            isOneToOne: false
+            referencedRelation: "treasury_transactions"
             referencedColumns: ["id"]
           },
         ]
@@ -1530,6 +1635,98 @@ export type Database = {
           },
         ]
       }
+      treasury_transactions: {
+        Row: {
+          amount: number
+          bank_account_id: string
+          bank_account_to_id: string | null
+          company_id: string
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string
+          created_by: string | null
+          doc_number: string
+          id: string
+          notes: string | null
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          reference: string | null
+          status: Database["public"]["Enums"]["treasury_txn_status"]
+          third_party_id: string | null
+          txn_date: string
+          txn_type: Database["public"]["Enums"]["treasury_txn_type"]
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          bank_account_id: string
+          bank_account_to_id?: string | null
+          company_id: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          doc_number: string
+          id?: string
+          notes?: string | null
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          reference?: string | null
+          status?: Database["public"]["Enums"]["treasury_txn_status"]
+          third_party_id?: string | null
+          txn_date?: string
+          txn_type: Database["public"]["Enums"]["treasury_txn_type"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          bank_account_id?: string
+          bank_account_to_id?: string | null
+          company_id?: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          doc_number?: string
+          id?: string
+          notes?: string | null
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          reference?: string | null
+          status?: Database["public"]["Enums"]["treasury_txn_status"]
+          third_party_id?: string | null
+          txn_date?: string
+          txn_type?: Database["public"]["Enums"]["treasury_txn_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "treasury_transactions_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "treasury_transactions_bank_account_to_id_fkey"
+            columns: ["bank_account_to_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "treasury_transactions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "treasury_transactions_third_party_id_fkey"
+            columns: ["third_party_id"]
+            isOneToOne: false
+            referencedRelation: "third_parties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       units_of_measure: {
         Row: {
           code: string
@@ -1685,6 +1882,10 @@ export type Database = {
         Args: { _sales_order_id: string }
         Returns: string
       }
+      confirm_treasury_transaction: {
+        Args: { _txn_id: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1711,8 +1912,21 @@ export type Database = {
         Args: { _company_id: string; _kind: string }
         Returns: string
       }
+      next_treasury_number: {
+        Args: {
+          _company_id: string
+          _type: Database["public"]["Enums"]["treasury_txn_type"]
+        }
+        Returns: string
+      }
+      recalc_ap_status: { Args: { _ap_id: string }; Returns: undefined }
+      recalc_ar_status: { Args: { _ar_id: string }; Returns: undefined }
       recalc_purchase_order_totals: {
         Args: { _po_id: string }
+        Returns: undefined
+      }
+      void_treasury_transaction: {
+        Args: { _txn_id: string }
         Returns: undefined
       }
     }
@@ -1728,6 +1942,7 @@ export type Database = {
         | "bodeguero"
         | "usuario"
       ar_status: "pendiente" | "parcial" | "cobrada" | "anulada"
+      bank_account_kind: "caja" | "banco" | "tarjeta" | "otro"
       document_type: "NIT" | "CC" | "CE" | "PP" | "TI" | "RUT" | "OTRO"
       kardex_direction: "in" | "out"
       movement_status: "borrador" | "confirmado" | "anulado"
@@ -1760,6 +1975,13 @@ export type Database = {
         | "vendedor"
         | "empleado"
         | "otro"
+      treasury_txn_status: "borrador" | "confirmado" | "anulado"
+      treasury_txn_type:
+        | "cobro"
+        | "pago"
+        | "transferencia"
+        | "ajuste_positivo"
+        | "ajuste_negativo"
       warehouse_type: "bodega" | "centro_distribucion" | "punto_venta"
     }
     CompositeTypes: {
@@ -1900,6 +2122,7 @@ export const Constants = {
         "usuario",
       ],
       ar_status: ["pendiente", "parcial", "cobrada", "anulada"],
+      bank_account_kind: ["caja", "banco", "tarjeta", "otro"],
       document_type: ["NIT", "CC", "CE", "PP", "TI", "RUT", "OTRO"],
       kardex_direction: ["in", "out"],
       movement_status: ["borrador", "confirmado", "anulado"],
@@ -1935,6 +2158,14 @@ export const Constants = {
         "vendedor",
         "empleado",
         "otro",
+      ],
+      treasury_txn_status: ["borrador", "confirmado", "anulado"],
+      treasury_txn_type: [
+        "cobro",
+        "pago",
+        "transferencia",
+        "ajuste_positivo",
+        "ajuste_negativo",
       ],
       warehouse_type: ["bodega", "centro_distribucion", "punto_venta"],
     },
