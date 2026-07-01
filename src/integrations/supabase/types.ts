@@ -2462,6 +2462,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_create_demo_company_for_user: {
+        Args: { _legal_name: string; _tax_id: string; _user_id: string }
+        Returns: string
+      }
       close_pos_session: {
         Args: { _counted: number; _session_id: string }
         Returns: undefined
