@@ -1,24 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <main className="flex min-h-screen items-center justify-center bg-background px-6">
+      <div className="max-w-xl text-center">
+        <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+          Proyecto inicial
+        </p>
+        <h1 className="mt-4 text-5xl font-semibold tracking-tight text-foreground">
+          Soluciona Ya ERP
+        </h1>
+        <p className="mt-4 text-base text-muted-foreground">
+          Base del proyecto lista. Comparte tus indicaciones para comenzar a construir los módulos del ERP.
+        </p>
+      </div>
+    </main>
   );
 }
