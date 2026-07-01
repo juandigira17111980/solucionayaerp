@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Plus, Building2, Check } from "lucide-react";
+import { Plus, Building2, Check, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -134,11 +134,33 @@ function EmpresasPage() {
                 <h3 className="mt-3 font-semibold">{c.trade_name ?? c.legal_name}</h3>
                 <p className="text-xs text-muted-foreground truncate">{c.legal_name}</p>
                 <p className="mt-2 text-xs text-muted-foreground">NIT {c.tax_id}</p>
-                {!active && (
-                  <Button variant="outline" size="sm" className="mt-4 w-full" onClick={() => setActiveCompany(c.id)}>
-                    Activar
-                  </Button>
-                )}
+                <div className="mt-4 grid gap-2">
+                  {!active && (
+                    <Button variant="outline" size="sm" onClick={() => setActiveCompany(c.id)}>
+                      Activar
+                    </Button>
+                  )}
+                  {active && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="gap-1"
+                      onClick={async () => {
+                        if (!confirm("¿Cargar datos de demostración en esta empresa? (bodegas, productos, clientes, compras, ventas, POS, gastos y nómina)")) return;
+                        const t = toast.loading("Simulando operación completa…");
+                        const { data, error } = await supabase.rpc("seed_demo_data", { _company_id: c.id });
+                        toast.dismiss(t);
+                        if (error) return toast.error(error.message);
+                        const d = data as any;
+                        if (d?.already_seeded) toast.info("Esta empresa ya tiene datos de demostración");
+                        else toast.success("¡Datos de demo cargados! Revisa Inventarios, Ventas, Tesorería, Contabilidad y Reportes");
+                        qc.invalidateQueries();
+                      }}
+                    >
+                      <Sparkles className="size-3.5" /> Cargar datos de demo
+                    </Button>
+                  )}
+                </div>
               </div>
             );
           })}

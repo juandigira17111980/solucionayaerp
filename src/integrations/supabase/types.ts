@@ -2682,6 +2682,7 @@ export type Database = {
         Args: { _company_id: string }
         Returns: undefined
       }
+      seed_demo_data: { Args: { _company_id: string }; Returns: Json }
       void_treasury_transaction: {
         Args: { _txn_id: string }
         Returns: undefined
