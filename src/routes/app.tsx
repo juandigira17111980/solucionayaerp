@@ -68,6 +68,12 @@ const NAV: NavGroup[] = [
     ],
   },
   {
+    label: "Analítica",
+    items: [
+      { label: "Reportes / BI", to: "/app/reportes", icon: BarChart3 },
+    ],
+  },
+  {
     label: "Administración",
     items: [
       { label: "Empresas", to: "/app/empresas", icon: Building2 },
