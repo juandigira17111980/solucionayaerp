@@ -32,6 +32,7 @@ import { Route as AppConfiguracionRouteImport } from './routes/app.configuracion
 import { Route as AppComprasRouteImport } from './routes/app.compras'
 import { Route as AppCategoriasRouteImport } from './routes/app.categorias'
 import { Route as AppBodegasRouteImport } from './routes/app.bodegas'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -148,11 +149,17 @@ const AppBodegasRoute = AppBodegasRouteImport.update({
   path: '/bodegas',
   getParentRoute: () => AppRoute,
 } as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
+  '/api/chat': typeof ApiChatRoute
   '/app/bodegas': typeof AppBodegasRoute
   '/app/categorias': typeof AppCategoriasRoute
   '/app/compras': typeof AppComprasRoute
@@ -177,6 +184,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/api/chat': typeof ApiChatRoute
   '/app/bodegas': typeof AppBodegasRoute
   '/app/categorias': typeof AppCategoriasRoute
   '/app/compras': typeof AppComprasRoute
@@ -203,6 +211,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
+  '/api/chat': typeof ApiChatRoute
   '/app/bodegas': typeof AppBodegasRoute
   '/app/categorias': typeof AppCategoriasRoute
   '/app/compras': typeof AppComprasRoute
@@ -230,6 +239,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/auth'
+    | '/api/chat'
     | '/app/bodegas'
     | '/app/categorias'
     | '/app/compras'
@@ -254,6 +264,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/api/chat'
     | '/app/bodegas'
     | '/app/categorias'
     | '/app/compras'
@@ -279,6 +290,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/auth'
+    | '/api/chat'
     | '/app/bodegas'
     | '/app/categorias'
     | '/app/compras'
@@ -305,6 +317,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiChatRoute: typeof ApiChatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -470,6 +483,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBodegasRouteImport
       parentRoute: typeof AppRoute
     }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -525,6 +545,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiChatRoute: ApiChatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
