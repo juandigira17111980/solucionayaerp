@@ -53,6 +53,8 @@ const NAV: NavGroup[] = [
       { label: "Bodegas", to: "/app/bodegas", icon: Warehouse },
       { label: "Inventarios", to: "/app/inventarios", icon: Boxes },
       { label: "Compras", to: "/app/compras", icon: ShoppingCart },
+      { label: "Ventas", to: "/app/ventas", icon: ShoppingBag },
+      { label: "Punto de venta", to: "/app/pos", icon: Store },
     ],
   },
   {
