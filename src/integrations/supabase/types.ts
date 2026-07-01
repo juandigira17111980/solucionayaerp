@@ -316,6 +316,60 @@ export type Database = {
           },
         ]
       }
+      chart_of_accounts: {
+        Row: {
+          account_type: Database["public"]["Enums"]["account_type"]
+          code: string
+          company_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          is_postable: boolean
+          name: string
+          parent_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_type: Database["public"]["Enums"]["account_type"]
+          code: string
+          company_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_postable?: boolean
+          name: string
+          parent_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_type?: Database["public"]["Enums"]["account_type"]
+          code?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_postable?: boolean
+          name?: string
+          parent_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chart_of_accounts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chart_of_accounts_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cities: {
         Row: {
           code: string | null
@@ -445,6 +499,211 @@ export type Database = {
             columns: ["country_id"]
             isOneToOne: false
             referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employees: {
+        Row: {
+          bank_account: string | null
+          base_salary: number
+          code: string
+          company_id: string
+          created_at: string
+          department: string | null
+          document_number: string | null
+          email: string | null
+          full_name: string
+          hire_date: string | null
+          id: string
+          notes: string | null
+          payment_method: string | null
+          phone: string | null
+          position: string | null
+          status: Database["public"]["Enums"]["employee_status"]
+          termination_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          bank_account?: string | null
+          base_salary?: number
+          code: string
+          company_id: string
+          created_at?: string
+          department?: string | null
+          document_number?: string | null
+          email?: string | null
+          full_name: string
+          hire_date?: string | null
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          phone?: string | null
+          position?: string | null
+          status?: Database["public"]["Enums"]["employee_status"]
+          termination_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bank_account?: string | null
+          base_salary?: number
+          code?: string
+          company_id?: string
+          created_at?: string
+          department?: string | null
+          document_number?: string | null
+          email?: string | null
+          full_name?: string
+          hire_date?: string | null
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          phone?: string | null
+          position?: string | null
+          status?: Database["public"]["Enums"]["employee_status"]
+          termination_date?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employees_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expenses: {
+        Row: {
+          ap_id: string | null
+          bank_account_id: string | null
+          category: string | null
+          company_id: string
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          description: string | null
+          doc_number: string
+          due_date: string | null
+          expense_account_id: string | null
+          expense_date: string
+          id: string
+          journal_entry_id: string | null
+          payment_method: string
+          status: Database["public"]["Enums"]["expense_status"]
+          subtotal: number
+          supplier_id: string | null
+          supplier_invoice: string | null
+          tax_amount: number
+          total: number
+          treasury_txn_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          ap_id?: string | null
+          bank_account_id?: string | null
+          category?: string | null
+          company_id: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          doc_number: string
+          due_date?: string | null
+          expense_account_id?: string | null
+          expense_date?: string
+          id?: string
+          journal_entry_id?: string | null
+          payment_method?: string
+          status?: Database["public"]["Enums"]["expense_status"]
+          subtotal?: number
+          supplier_id?: string | null
+          supplier_invoice?: string | null
+          tax_amount?: number
+          total?: number
+          treasury_txn_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ap_id?: string | null
+          bank_account_id?: string | null
+          category?: string | null
+          company_id?: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          doc_number?: string
+          due_date?: string | null
+          expense_account_id?: string | null
+          expense_date?: string
+          id?: string
+          journal_entry_id?: string | null
+          payment_method?: string
+          status?: Database["public"]["Enums"]["expense_status"]
+          subtotal?: number
+          supplier_id?: string | null
+          supplier_invoice?: string | null
+          tax_amount?: number
+          total?: number
+          treasury_txn_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_ap_id_fkey"
+            columns: ["ap_id"]
+            isOneToOne: false
+            referencedRelation: "accounts_payable"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_expense_account_id_fkey"
+            columns: ["expense_account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "third_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_treasury_txn_id_fkey"
+            columns: ["treasury_txn_id"]
+            isOneToOne: false
+            referencedRelation: "treasury_transactions"
             referencedColumns: ["id"]
           },
         ]
@@ -589,6 +848,126 @@ export type Database = {
             columns: ["warehouse_to_id"]
             isOneToOne: false
             referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journal_entries: {
+        Row: {
+          company_id: string
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          doc_number: string
+          entry_date: string
+          id: string
+          reference: string | null
+          source_id: string | null
+          source_type: string | null
+          status: Database["public"]["Enums"]["journal_status"]
+          total_credit: number
+          total_debit: number
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          doc_number: string
+          entry_date?: string
+          id?: string
+          reference?: string | null
+          source_id?: string | null
+          source_type?: string | null
+          status?: Database["public"]["Enums"]["journal_status"]
+          total_credit?: number
+          total_debit?: number
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          doc_number?: string
+          entry_date?: string
+          id?: string
+          reference?: string | null
+          source_id?: string | null
+          source_type?: string | null
+          status?: Database["public"]["Enums"]["journal_status"]
+          total_credit?: number
+          total_debit?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journal_entry_lines: {
+        Row: {
+          account_id: string
+          created_at: string
+          credit: number
+          debit: number
+          description: string | null
+          id: string
+          journal_entry_id: string
+          third_party_id: string | null
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          credit?: number
+          debit?: number
+          description?: string | null
+          id?: string
+          journal_entry_id: string
+          third_party_id?: string | null
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          credit?: number
+          debit?: number
+          description?: string | null
+          id?: string
+          journal_entry_id?: string
+          third_party_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entry_lines_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entry_lines_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entry_lines_third_party_id_fkey"
+            columns: ["third_party_id"]
+            isOneToOne: false
+            referencedRelation: "third_parties"
             referencedColumns: ["id"]
           },
         ]
@@ -738,6 +1117,153 @@ export type Database = {
             columns: ["treasury_txn_id"]
             isOneToOne: false
             referencedRelation: "treasury_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payroll_items: {
+        Row: {
+          base_salary: number
+          bonuses: number
+          created_at: string
+          employee_id: string
+          gross_amount: number
+          health_deduction: number
+          id: string
+          net_amount: number
+          notes: string | null
+          other_deductions: number
+          overtime: number
+          payroll_period_id: string
+          pension_deduction: number
+          worked_days: number
+        }
+        Insert: {
+          base_salary?: number
+          bonuses?: number
+          created_at?: string
+          employee_id: string
+          gross_amount?: number
+          health_deduction?: number
+          id?: string
+          net_amount?: number
+          notes?: string | null
+          other_deductions?: number
+          overtime?: number
+          payroll_period_id: string
+          pension_deduction?: number
+          worked_days?: number
+        }
+        Update: {
+          base_salary?: number
+          bonuses?: number
+          created_at?: string
+          employee_id?: string
+          gross_amount?: number
+          health_deduction?: number
+          id?: string
+          net_amount?: number
+          notes?: string | null
+          other_deductions?: number
+          overtime?: number
+          payroll_period_id?: string
+          pension_deduction?: number
+          worked_days?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_items_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_items_payroll_period_id_fkey"
+            columns: ["payroll_period_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payroll_periods: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          doc_number: string
+          frequency: string
+          id: string
+          journal_entry_id: string | null
+          liquidated_at: string | null
+          liquidated_by: string | null
+          name: string
+          notes: string | null
+          pay_date: string | null
+          period_end: string
+          period_start: string
+          status: Database["public"]["Enums"]["payroll_status"]
+          total_deductions: number
+          total_gross: number
+          total_net: number
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          doc_number: string
+          frequency?: string
+          id?: string
+          journal_entry_id?: string | null
+          liquidated_at?: string | null
+          liquidated_by?: string | null
+          name: string
+          notes?: string | null
+          pay_date?: string | null
+          period_end: string
+          period_start: string
+          status?: Database["public"]["Enums"]["payroll_status"]
+          total_deductions?: number
+          total_gross?: number
+          total_net?: number
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          doc_number?: string
+          frequency?: string
+          id?: string
+          journal_entry_id?: string | null
+          liquidated_at?: string | null
+          liquidated_by?: string | null
+          name?: string
+          notes?: string | null
+          pay_date?: string | null
+          period_end?: string
+          period_start?: string
+          status?: Database["public"]["Enums"]["payroll_status"]
+          total_deductions?: number
+          total_gross?: number
+          total_net?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_periods_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_periods_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
             referencedColumns: ["id"]
           },
         ]
@@ -1870,10 +2396,12 @@ export type Database = {
         Args: { _counted: number; _session_id: string }
         Returns: undefined
       }
+      confirm_expense: { Args: { _expense_id: string }; Returns: string }
       confirm_inventory_movement: {
         Args: { _movement_id: string }
         Returns: undefined
       }
+      confirm_journal_entry: { Args: { _je_id: string }; Returns: undefined }
       confirm_purchase_receipt: {
         Args: { _receipt_id: string }
         Returns: string
@@ -1896,6 +2424,14 @@ export type Database = {
       is_company_member: {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
+      }
+      liquidate_payroll_period: {
+        Args: { _period_id: string }
+        Returns: undefined
+      }
+      next_accounting_number: {
+        Args: { _company_id: string; _kind: string }
+        Returns: string
       }
       next_movement_number: {
         Args: {
@@ -1925,12 +2461,23 @@ export type Database = {
         Args: { _po_id: string }
         Returns: undefined
       }
+      seed_chart_of_accounts: {
+        Args: { _company_id: string }
+        Returns: undefined
+      }
       void_treasury_transaction: {
         Args: { _txn_id: string }
         Returns: undefined
       }
     }
     Enums: {
+      account_type:
+        | "activo"
+        | "pasivo"
+        | "patrimonio"
+        | "ingreso"
+        | "gasto"
+        | "costo"
       ap_status: "pendiente" | "parcial" | "pagada" | "anulada"
       app_role:
         | "super_admin"
@@ -1944,6 +2491,9 @@ export type Database = {
       ar_status: "pendiente" | "parcial" | "cobrada" | "anulada"
       bank_account_kind: "caja" | "banco" | "tarjeta" | "otro"
       document_type: "NIT" | "CC" | "CE" | "PP" | "TI" | "RUT" | "OTRO"
+      employee_status: "activo" | "inactivo" | "retirado"
+      expense_status: "borrador" | "confirmado" | "pagado" | "anulado"
+      journal_status: "borrador" | "confirmado" | "anulado"
       kardex_direction: "in" | "out"
       movement_status: "borrador" | "confirmado" | "anulado"
       movement_type:
@@ -1959,6 +2509,7 @@ export type Database = {
         | "credito"
         | "mixto"
         | "otro"
+      payroll_status: "borrador" | "liquidada" | "pagada" | "anulada"
       pos_session_status: "abierta" | "cerrada"
       purchase_order_status:
         | "borrador"
@@ -2110,6 +2661,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      account_type: [
+        "activo",
+        "pasivo",
+        "patrimonio",
+        "ingreso",
+        "gasto",
+        "costo",
+      ],
       ap_status: ["pendiente", "parcial", "pagada", "anulada"],
       app_role: [
         "super_admin",
@@ -2124,6 +2683,9 @@ export const Constants = {
       ar_status: ["pendiente", "parcial", "cobrada", "anulada"],
       bank_account_kind: ["caja", "banco", "tarjeta", "otro"],
       document_type: ["NIT", "CC", "CE", "PP", "TI", "RUT", "OTRO"],
+      employee_status: ["activo", "inactivo", "retirado"],
+      expense_status: ["borrador", "confirmado", "pagado", "anulado"],
+      journal_status: ["borrador", "confirmado", "anulado"],
       kardex_direction: ["in", "out"],
       movement_status: ["borrador", "confirmado", "anulado"],
       movement_type: [
@@ -2141,6 +2703,7 @@ export const Constants = {
         "mixto",
         "otro",
       ],
+      payroll_status: ["borrador", "liquidada", "pagada", "anulada"],
       pos_session_status: ["abierta", "cerrada"],
       purchase_order_status: [
         "borrador",
