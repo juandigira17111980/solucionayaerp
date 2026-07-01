@@ -83,10 +83,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Soluciona Ya ERP" },
       { name: "description", content: "Soluciona Ya ERP — sistema de gestión empresarial." },
       { property: "og:title", content: "Soluciona Ya ERP" },
-      { property: "og:description", content: "Sistema de gestión empresarial." },
+      { property: "og:description", content: "Soluciona Ya ERP — sistema de gestión empresarial." },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "Soluciona Ya ERP" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Soluciona Ya ERP" },
+      { name: "twitter:description", content: "Soluciona Ya ERP — sistema de gestión empresarial." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/dfc6d154-3f7f-4ec6-b044-3b66eacea63b/id-preview-6ee765fd--1c42c18c-7a46-420c-b3b5-114b72939bbf.lovable.app-1782930780131.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/dfc6d154-3f7f-4ec6-b044-3b66eacea63b/id-preview-6ee765fd--1c42c18c-7a46-420c-b3b5-114b72939bbf.lovable.app-1782930780131.png" },
     ],
     links: [
       {
