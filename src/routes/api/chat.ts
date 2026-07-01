@@ -39,13 +39,12 @@ export const Route = createFileRoute("/api/chat")({
           auth: { persistSession: false, autoRefreshToken: false },
         });
 
-        // Validate user + membership
         const { data: userRes } = await supabase.auth.getUser();
         if (!userRes?.user) return new Response("Unauthorized", { status: 401 });
 
         const { data: member } = await supabase
-          .from("company_users")
-          .select("id")
+          .from("user_companies")
+          .select("company_id")
           .eq("company_id", companyId)
           .eq("user_id", userRes.user.id)
           .maybeSingle();
@@ -54,93 +53,95 @@ export const Route = createFileRoute("/api/chat")({
         const gateway = createLovableAiGatewayProvider(apiKey);
         const model = gateway("google/gemini-3-flash-preview");
 
-        const rpcTool = (
-          name: string,
-          desc: string,
-          extra: Record<string, z.ZodTypeAny> = {},
-          rpc?: string,
-        ) =>
-          tool({
-            description: desc,
-            inputSchema: z.object(extra),
-            execute: async (args) => {
-              const { data, error } = await supabase.rpc(rpc ?? (name as never), {
-                p_company_id: companyId,
-                ...args,
-              } as never);
-              if (error) return { error: error.message };
-              return { data };
-            },
-          });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const rpc = supabase.rpc.bind(supabase) as any;
 
         const tools = {
-          smart_alerts: rpcTool(
-            "report_smart_alerts",
-            "Consolida alertas críticas de la empresa: cartera vencida, pagos próximos, stock crítico y saldos bancarios negativos.",
-          ),
+          smart_alerts: tool({
+            description:
+              "Consolida alertas críticas de la empresa: cartera vencida, pagos próximos, stock crítico y saldos bancarios negativos.",
+            inputSchema: z.object({}),
+            execute: async () => {
+              const { data, error } = await rpc("report_smart_alerts", { p_company_id: companyId });
+              return error ? { error: error.message } : { data };
+            },
+          }),
           reorder_suggestions: tool({
             description:
               "Devuelve productos que requieren reposición con cantidad sugerida y días de stock.",
             inputSchema: z.object({ days: z.number().int().min(7).max(180).default(30) }),
             execute: async ({ days }) => {
-              const { data, error } = await supabase.rpc("report_reorder_suggestions", {
+              const { data, error } = await rpc("report_reorder_suggestions", {
                 p_company_id: companyId,
                 p_days: days,
               });
-              if (error) return { error: error.message };
-              return { data };
+              return error ? { error: error.message } : { data };
             },
           }),
           sales_summary: tool({
-            description: "Resumen de ventas (totales, margen) en un rango de fechas.",
+            description: "Resumen de ventas (totales, margen, tickets) en un rango de fechas.",
             inputSchema: z.object({
               from: z.string().describe("YYYY-MM-DD"),
               to: z.string().describe("YYYY-MM-DD"),
             }),
             execute: async ({ from, to }) => {
-              const { data, error } = await supabase.rpc("report_sales_summary", {
-                p_company_id: companyId,
-                p_from: from,
-                p_to: to,
+              const { data, error } = await rpc("report_sales_summary", {
+                _company_id: companyId,
+                _from: from,
+                _to: to,
               });
-              if (error) return { error: error.message };
-              return { data };
+              return error ? { error: error.message } : { data };
             },
           }),
           pnl: tool({
             description: "Estado de resultados simplificado (ingresos - costo - gastos) por rango.",
             inputSchema: z.object({ from: z.string(), to: z.string() }),
             execute: async ({ from, to }) => {
-              const { data, error } = await supabase.rpc("report_pnl", {
-                p_company_id: companyId,
-                p_from: from,
-                p_to: to,
+              const { data, error } = await rpc("report_pnl", {
+                _company_id: companyId,
+                _from: from,
+                _to: to,
               });
-              if (error) return { error: error.message };
-              return { data };
+              return error ? { error: error.message } : { data };
             },
           }),
-          ar_aging: rpcTool(
-            "report_ar_aging",
-            "Antigüedad de cartera (CxC) por buckets (corriente, 1-30, 31-60, 61-90, +90).",
-          ),
-          ap_aging: rpcTool(
-            "report_ap_aging",
-            "Antigüedad de cuentas por pagar (CxP) por buckets.",
-          ),
-          inventory_value: rpcTool(
-            "report_inventory_value",
-            "Valor de inventario por bodega (costo promedio ponderado).",
-          ),
+          ar_aging: tool({
+            description: "Antigüedad de cartera (CxC) por buckets (corriente, 1-30, 31-60, 61-90, +90).",
+            inputSchema: z.object({}),
+            execute: async () => {
+              const { data, error } = await rpc("report_ar_aging", { _company_id: companyId });
+              return error ? { error: error.message } : { data };
+            },
+          }),
+          ap_aging: tool({
+            description: "Antigüedad de cuentas por pagar (CxP) por buckets.",
+            inputSchema: z.object({}),
+            execute: async () => {
+              const { data, error } = await rpc("report_ap_aging", { _company_id: companyId });
+              return error ? { error: error.message } : { data };
+            },
+          }),
+          inventory_value: tool({
+            description: "Valor de inventario por bodega (costo promedio ponderado).",
+            inputSchema: z.object({}),
+            execute: async () => {
+              const { data, error } = await rpc("report_inventory_value", {
+                _company_id: companyId,
+              });
+              return error ? { error: error.message } : { data };
+            },
+          }),
         };
 
         const today = new Date().toISOString().slice(0, 10);
-        const system = `${AGENT_PROMPTS[agent] ?? AGENT_PROMPTS.general}\n\nFecha actual: ${today}. Empresa activa: ${companyId}. Cuando el usuario pida datos, llama primero a la herramienta correcta antes de responder. No inventes cifras.`;
+        const system = `${AGENT_PROMPTS[agent] ?? AGENT_PROMPTS.general}\n\nFecha actual: ${today}. Cuando el usuario pida cifras, llama primero a la herramienta correcta antes de responder. No inventes datos: si una herramienta devuelve vacío, dilo.`;
+
+        const modelMessages = await convertToModelMessages(messages);
 
         const result = streamText({
           model,
           system,
-          messages: convertToModelMessages(messages),
+          messages: modelMessages,
           tools,
           stopWhen: stepCountIs(8),
         });
