@@ -55,6 +55,7 @@ const NAV: NavGroup[] = [
       { label: "Compras", to: "/app/compras", icon: ShoppingCart },
       { label: "Ventas", to: "/app/ventas", icon: ShoppingBag },
       { label: "Punto de venta", to: "/app/pos", icon: Store },
+      { label: "Tesorería", to: "/app/tesoreria", icon: Wallet },
     ],
   },
   {
