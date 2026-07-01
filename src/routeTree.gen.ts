@@ -13,6 +13,8 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppTercerosRouteImport } from './routes/app.terceros'
+import { Route as AppProductosRouteImport } from './routes/app.productos'
 import { Route as AppEmpresasRouteImport } from './routes/app.empresas'
 import { Route as AppBodegasRouteImport } from './routes/app.bodegas'
 
@@ -36,6 +38,16 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppTercerosRoute = AppTercerosRouteImport.update({
+  id: '/terceros',
+  path: '/terceros',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProductosRoute = AppProductosRouteImport.update({
+  id: '/productos',
+  path: '/productos',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppEmpresasRoute = AppEmpresasRouteImport.update({
   id: '/empresas',
   path: '/empresas',
@@ -53,6 +65,8 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/app/bodegas': typeof AppBodegasRoute
   '/app/empresas': typeof AppEmpresasRoute
+  '/app/productos': typeof AppProductosRoute
+  '/app/terceros': typeof AppTercerosRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
@@ -60,6 +74,8 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/app/bodegas': typeof AppBodegasRoute
   '/app/empresas': typeof AppEmpresasRoute
+  '/app/productos': typeof AppProductosRoute
+  '/app/terceros': typeof AppTercerosRoute
   '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
@@ -69,13 +85,30 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/app/bodegas': typeof AppBodegasRoute
   '/app/empresas': typeof AppEmpresasRoute
+  '/app/productos': typeof AppProductosRoute
+  '/app/terceros': typeof AppTercerosRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/app' | '/auth' | '/app/bodegas' | '/app/empresas' | '/app/'
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/auth'
+    | '/app/bodegas'
+    | '/app/empresas'
+    | '/app/productos'
+    | '/app/terceros'
+    | '/app/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/app/bodegas' | '/app/empresas' | '/app'
+  to:
+    | '/'
+    | '/auth'
+    | '/app/bodegas'
+    | '/app/empresas'
+    | '/app/productos'
+    | '/app/terceros'
+    | '/app'
   id:
     | '__root__'
     | '/'
@@ -83,6 +116,8 @@ export interface FileRouteTypes {
     | '/auth'
     | '/app/bodegas'
     | '/app/empresas'
+    | '/app/productos'
+    | '/app/terceros'
     | '/app/'
   fileRoutesById: FileRoutesById
 }
@@ -122,6 +157,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/terceros': {
+      id: '/app/terceros'
+      path: '/terceros'
+      fullPath: '/app/terceros'
+      preLoaderRoute: typeof AppTercerosRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/productos': {
+      id: '/app/productos'
+      path: '/productos'
+      fullPath: '/app/productos'
+      preLoaderRoute: typeof AppProductosRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/empresas': {
       id: '/app/empresas'
       path: '/empresas'
@@ -142,12 +191,16 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppBodegasRoute: typeof AppBodegasRoute
   AppEmpresasRoute: typeof AppEmpresasRoute
+  AppProductosRoute: typeof AppProductosRoute
+  AppTercerosRoute: typeof AppTercerosRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppBodegasRoute: AppBodegasRoute,
   AppEmpresasRoute: AppEmpresasRoute,
+  AppProductosRoute: AppProductosRoute,
+  AppTercerosRoute: AppTercerosRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
