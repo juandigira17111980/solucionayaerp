@@ -74,6 +74,13 @@ const NAV: NavGroup[] = [
     ],
   },
   {
+    label: "Inteligencia",
+    items: [
+      { label: "Asistente IA", to: "/app/asistente", icon: Bot, badge: "IA" },
+      { label: "Alertas", to: "/app/alertas", icon: Bell },
+    ],
+  },
+  {
     label: "Administración",
     items: [
       { label: "Empresas", to: "/app/empresas", icon: Building2 },
