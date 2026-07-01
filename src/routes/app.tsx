@@ -4,6 +4,7 @@ import {
   Building2, Warehouse, Boxes, Users, LayoutDashboard, Settings, LogOut,
   Package, Tags, Factory, Ruler, MapPin, ShieldCheck, ChevronDown, Search,
   Menu, X, Sparkles, ShoppingCart, ShoppingBag, Store, Wallet,
+  Receipt, BookOpen, UsersRound,
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -56,6 +57,14 @@ const NAV: NavGroup[] = [
       { label: "Ventas", to: "/app/ventas", icon: ShoppingBag },
       { label: "Punto de venta", to: "/app/pos", icon: Store },
       { label: "Tesorería", to: "/app/tesoreria", icon: Wallet },
+    ],
+  },
+  {
+    label: "Finanzas",
+    items: [
+      { label: "Gastos", to: "/app/gastos", icon: Receipt },
+      { label: "Contabilidad", to: "/app/contabilidad", icon: BookOpen },
+      { label: "Nómina", to: "/app/nomina", icon: UsersRound },
     ],
   },
   {
