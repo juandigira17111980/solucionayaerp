@@ -22,6 +22,7 @@ import { Route as AppInventariosRouteImport } from './routes/app.inventarios'
 import { Route as AppGeografiaRouteImport } from './routes/app.geografia'
 import { Route as AppEmpresasRouteImport } from './routes/app.empresas'
 import { Route as AppConfiguracionRouteImport } from './routes/app.configuracion'
+import { Route as AppComprasRouteImport } from './routes/app.compras'
 import { Route as AppCategoriasRouteImport } from './routes/app.categorias'
 import { Route as AppBodegasRouteImport } from './routes/app.bodegas'
 
@@ -90,6 +91,11 @@ const AppConfiguracionRoute = AppConfiguracionRouteImport.update({
   path: '/configuracion',
   getParentRoute: () => AppRoute,
 } as any)
+const AppComprasRoute = AppComprasRouteImport.update({
+  id: '/compras',
+  path: '/compras',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCategoriasRoute = AppCategoriasRouteImport.update({
   id: '/categorias',
   path: '/categorias',
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/app/bodegas': typeof AppBodegasRoute
   '/app/categorias': typeof AppCategoriasRoute
+  '/app/compras': typeof AppComprasRoute
   '/app/configuracion': typeof AppConfiguracionRoute
   '/app/empresas': typeof AppEmpresasRoute
   '/app/geografia': typeof AppGeografiaRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/app/bodegas': typeof AppBodegasRoute
   '/app/categorias': typeof AppCategoriasRoute
+  '/app/compras': typeof AppComprasRoute
   '/app/configuracion': typeof AppConfiguracionRoute
   '/app/empresas': typeof AppEmpresasRoute
   '/app/geografia': typeof AppGeografiaRoute
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/app/bodegas': typeof AppBodegasRoute
   '/app/categorias': typeof AppCategoriasRoute
+  '/app/compras': typeof AppComprasRoute
   '/app/configuracion': typeof AppConfiguracionRoute
   '/app/empresas': typeof AppEmpresasRoute
   '/app/geografia': typeof AppGeografiaRoute
@@ -160,6 +169,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/app/bodegas'
     | '/app/categorias'
+    | '/app/compras'
     | '/app/configuracion'
     | '/app/empresas'
     | '/app/geografia'
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/app/bodegas'
     | '/app/categorias'
+    | '/app/compras'
     | '/app/configuracion'
     | '/app/empresas'
     | '/app/geografia'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/app/bodegas'
     | '/app/categorias'
+    | '/app/compras'
     | '/app/configuracion'
     | '/app/empresas'
     | '/app/geografia'
@@ -304,6 +316,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppConfiguracionRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/compras': {
+      id: '/app/compras'
+      path: '/compras'
+      fullPath: '/app/compras'
+      preLoaderRoute: typeof AppComprasRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/categorias': {
       id: '/app/categorias'
       path: '/categorias'
@@ -324,6 +343,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppBodegasRoute: typeof AppBodegasRoute
   AppCategoriasRoute: typeof AppCategoriasRoute
+  AppComprasRoute: typeof AppComprasRoute
   AppConfiguracionRoute: typeof AppConfiguracionRoute
   AppEmpresasRoute: typeof AppEmpresasRoute
   AppGeografiaRoute: typeof AppGeografiaRoute
@@ -339,6 +359,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppBodegasRoute: AppBodegasRoute,
   AppCategoriasRoute: AppCategoriasRoute,
+  AppComprasRoute: AppComprasRoute,
   AppConfiguracionRoute: AppConfiguracionRoute,
   AppEmpresasRoute: AppEmpresasRoute,
   AppGeografiaRoute: AppGeografiaRoute,
