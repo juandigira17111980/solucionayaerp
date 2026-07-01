@@ -2159,9 +2159,11 @@ export type Database = {
           is_employee: boolean
           is_supplier: boolean
           is_vendor: boolean
+          kind: string | null
           legal_name: string
           payment_terms_days: number
           phone: string | null
+          tax_id: string | null
           trade_name: string | null
           updated_at: string
         }
@@ -2180,9 +2182,11 @@ export type Database = {
           is_employee?: boolean
           is_supplier?: boolean
           is_vendor?: boolean
+          kind?: string | null
           legal_name: string
           payment_terms_days?: number
           phone?: string | null
+          tax_id?: string | null
           trade_name?: string | null
           updated_at?: string
         }
@@ -2201,9 +2205,11 @@ export type Database = {
           is_employee?: boolean
           is_supplier?: boolean
           is_vendor?: boolean
+          kind?: string | null
           legal_name?: string
           payment_terms_days?: number
           phone?: string | null
+          tax_id?: string | null
           trade_name?: string | null
           updated_at?: string
         }
