@@ -18,6 +18,7 @@ import { Route as AppUnidadesRouteImport } from './routes/app.unidades'
 import { Route as AppTesoreriaRouteImport } from './routes/app.tesoreria'
 import { Route as AppTercerosRouteImport } from './routes/app.terceros'
 import { Route as AppSeguridadRouteImport } from './routes/app.seguridad'
+import { Route as AppReportesRouteImport } from './routes/app.reportes'
 import { Route as AppProductosRouteImport } from './routes/app.productos'
 import { Route as AppPosRouteImport } from './routes/app.pos'
 import { Route as AppNominaRouteImport } from './routes/app.nomina'
@@ -75,6 +76,11 @@ const AppTercerosRoute = AppTercerosRouteImport.update({
 const AppSeguridadRoute = AppSeguridadRouteImport.update({
   id: '/seguridad',
   path: '/seguridad',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReportesRoute = AppReportesRouteImport.update({
+  id: '/reportes',
+  path: '/reportes',
   getParentRoute: () => AppRoute,
 } as any)
 const AppProductosRoute = AppProductosRouteImport.update({
@@ -160,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/app/nomina': typeof AppNominaRoute
   '/app/pos': typeof AppPosRoute
   '/app/productos': typeof AppProductosRoute
+  '/app/reportes': typeof AppReportesRoute
   '/app/seguridad': typeof AppSeguridadRoute
   '/app/terceros': typeof AppTercerosRoute
   '/app/tesoreria': typeof AppTesoreriaRoute
@@ -183,6 +190,7 @@ export interface FileRoutesByTo {
   '/app/nomina': typeof AppNominaRoute
   '/app/pos': typeof AppPosRoute
   '/app/productos': typeof AppProductosRoute
+  '/app/reportes': typeof AppReportesRoute
   '/app/seguridad': typeof AppSeguridadRoute
   '/app/terceros': typeof AppTercerosRoute
   '/app/tesoreria': typeof AppTesoreriaRoute
@@ -208,6 +216,7 @@ export interface FileRoutesById {
   '/app/nomina': typeof AppNominaRoute
   '/app/pos': typeof AppPosRoute
   '/app/productos': typeof AppProductosRoute
+  '/app/reportes': typeof AppReportesRoute
   '/app/seguridad': typeof AppSeguridadRoute
   '/app/terceros': typeof AppTercerosRoute
   '/app/tesoreria': typeof AppTesoreriaRoute
@@ -234,6 +243,7 @@ export interface FileRouteTypes {
     | '/app/nomina'
     | '/app/pos'
     | '/app/productos'
+    | '/app/reportes'
     | '/app/seguridad'
     | '/app/terceros'
     | '/app/tesoreria'
@@ -257,6 +267,7 @@ export interface FileRouteTypes {
     | '/app/nomina'
     | '/app/pos'
     | '/app/productos'
+    | '/app/reportes'
     | '/app/seguridad'
     | '/app/terceros'
     | '/app/tesoreria'
@@ -281,6 +292,7 @@ export interface FileRouteTypes {
     | '/app/nomina'
     | '/app/pos'
     | '/app/productos'
+    | '/app/reportes'
     | '/app/seguridad'
     | '/app/terceros'
     | '/app/tesoreria'
@@ -358,6 +370,13 @@ declare module '@tanstack/react-router' {
       path: '/seguridad'
       fullPath: '/app/seguridad'
       preLoaderRoute: typeof AppSeguridadRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/reportes': {
+      id: '/app/reportes'
+      path: '/reportes'
+      fullPath: '/app/reportes'
+      preLoaderRoute: typeof AppReportesRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/productos': {
@@ -468,6 +487,7 @@ interface AppRouteChildren {
   AppNominaRoute: typeof AppNominaRoute
   AppPosRoute: typeof AppPosRoute
   AppProductosRoute: typeof AppProductosRoute
+  AppReportesRoute: typeof AppReportesRoute
   AppSeguridadRoute: typeof AppSeguridadRoute
   AppTercerosRoute: typeof AppTercerosRoute
   AppTesoreriaRoute: typeof AppTesoreriaRoute
@@ -490,6 +510,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppNominaRoute: AppNominaRoute,
   AppPosRoute: AppPosRoute,
   AppProductosRoute: AppProductosRoute,
+  AppReportesRoute: AppReportesRoute,
   AppSeguridadRoute: AppSeguridadRoute,
   AppTercerosRoute: AppTercerosRoute,
   AppTesoreriaRoute: AppTesoreriaRoute,
