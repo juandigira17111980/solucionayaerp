@@ -1514,12 +1514,16 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean
+          is_purchasable: boolean
+          is_sellable: boolean
           max_stock: number | null
           min_stock: number
           name: string
+          product_type: Database["public"]["Enums"]["product_type"]
           sale_price: number
           sku: string
           tax_rate: number
+          tracks_inventory: boolean
           uom_id: string | null
           updated_at: string
         }
@@ -1533,12 +1537,16 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          is_purchasable?: boolean
+          is_sellable?: boolean
           max_stock?: number | null
           min_stock?: number
           name: string
+          product_type?: Database["public"]["Enums"]["product_type"]
           sale_price?: number
           sku: string
           tax_rate?: number
+          tracks_inventory?: boolean
           uom_id?: string | null
           updated_at?: string
         }
@@ -1552,12 +1560,16 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          is_purchasable?: boolean
+          is_sellable?: boolean
           max_stock?: number | null
           min_stock?: number
           name?: string
+          product_type?: Database["public"]["Enums"]["product_type"]
           sale_price?: number
           sku?: string
           tax_rate?: number
+          tracks_inventory?: boolean
           uom_id?: string | null
           updated_at?: string
         }
@@ -2719,6 +2731,7 @@ export type Database = {
         | "otro"
       payroll_status: "borrador" | "liquidada" | "pagada" | "anulada"
       pos_session_status: "abierta" | "cerrada"
+      product_type: "physical" | "service" | "consumable"
       purchase_order_status:
         | "borrador"
         | "aprobada"
@@ -2913,6 +2926,7 @@ export const Constants = {
       ],
       payroll_status: ["borrador", "liquidada", "pagada", "anulada"],
       pos_session_status: ["abierta", "cerrada"],
+      product_type: ["physical", "service", "consumable"],
       purchase_order_status: [
         "borrador",
         "aprobada",

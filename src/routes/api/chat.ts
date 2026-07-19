@@ -50,10 +50,16 @@ export const Route = createFileRoute("/api/chat")({
           .maybeSingle();
         if (!member) return new Response("Forbidden", { status: 403 });
 
+        const { data: canUseAi, error: permissionError } = await supabase.rpc("has_permission" as any, {
+          _user_id: userRes.user.id,
+          _company_id: companyId,
+          _permission_code: "ai.use",
+        });
+        if (permissionError || !canUseAi) return new Response("Forbidden", { status: 403 });
+
         const gateway = createLovableAiGatewayProvider(apiKey);
         const model = gateway("google/gemini-3-flash-preview");
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const rpc = supabase.rpc.bind(supabase) as any;
 
         const tools = {

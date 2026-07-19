@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useActiveCompany } from "@/hooks/use-active-company";
+import { Can } from "@/components/erp/permission-gate";
 
 export const Route = createFileRoute("/app/inventarios")({ component: InventariosPage });
 
@@ -76,11 +77,13 @@ function InventariosPage() {
           <TabsTrigger value="existencias"><Boxes className="size-4 mr-2" /> Existencias</TabsTrigger>
           <TabsTrigger value="kardex"><TrendingUp className="size-4 mr-2" /> Kardex</TabsTrigger>
           <TabsTrigger value="lotes"><Tag className="size-4 mr-2" /> Lotes</TabsTrigger>
+          <TabsTrigger value="trazabilidad"><FileText className="size-4 mr-2" /> Trazabilidad</TabsTrigger>
         </TabsList>
         <TabsContent value="movimientos"><MovimientosTab companyId={activeCompanyId} /></TabsContent>
         <TabsContent value="existencias"><ExistenciasTab companyId={activeCompanyId} /></TabsContent>
         <TabsContent value="kardex"><KardexTab companyId={activeCompanyId} /></TabsContent>
         <TabsContent value="lotes"><LotesTab companyId={activeCompanyId} /></TabsContent>
+        <TabsContent value="trazabilidad"><TraceabilityTab companyId={activeCompanyId} /></TabsContent>
       </Tabs>
     </div>
   );
@@ -125,7 +128,9 @@ function MovimientosTab({ companyId }: { companyId: string }) {
           </SelectContent>
         </Select>
         <div className="ml-auto">
-          <NewMovementDialog companyId={companyId} open={open} onOpenChange={setOpen} onCreated={() => qc.invalidateQueries({ queryKey: ["movements"] })} />
+          <Can permission="inventory.operate">
+            <NewMovementDialog companyId={companyId} open={open} onOpenChange={setOpen} onCreated={() => qc.invalidateQueries({ queryKey: ["movements"] })} />
+          </Can>
         </div>
       </div>
 
@@ -198,7 +203,6 @@ function MovementActions({ movement, companyId }: { movement: any; companyId: st
     },
     onError: (e: any) => toast.error(e.message ?? "No se pudo confirmar"),
   });
-
   const cancelMut = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from("inventory_movements" as any).update({ status: "anulado" }).eq("id", movement.id);
@@ -212,14 +216,14 @@ function MovementActions({ movement, companyId }: { movement: any; companyId: st
     <div className="inline-flex gap-1">
       <Button variant="ghost" size="sm" onClick={() => setDetailOpen(true)}>Ver</Button>
       {movement.status === "borrador" && (
-        <>
+        <Can permission="inventory.operate">
           <Button variant="ghost" size="sm" onClick={() => confirmMut.mutate()} disabled={confirmMut.isPending} className="text-emerald-600">
             <CheckCircle2 className="size-4 mr-1" /> Confirmar
           </Button>
           <Button variant="ghost" size="sm" onClick={() => cancelMut.mutate()} className="text-destructive">
             Anular
           </Button>
-        </>
+        </Can>
       )}
       <MovementDetailDialog movement={movement} companyId={companyId} open={detailOpen} onOpenChange={setDetailOpen} />
     </div>
@@ -304,7 +308,8 @@ type LineDraft = {
   product_id: string;
   quantity: string;
   unit_cost: string;
-  lot_id: string;
+  lot_code: string;
+  expires_at: string;
   serial_number: string;
 };
 
@@ -318,11 +323,12 @@ function NewMovementDialog({ companyId, open, onOpenChange, onCreated }: {
   const [thirdParty, setThirdParty] = useState("");
   const [reference, setReference] = useState("");
   const [notes, setNotes] = useState("");
+  const [reason, setReason] = useState("");
   const [lines, setLines] = useState<LineDraft[]>([blankLine()]);
   const [confirmNow, setConfirmNow] = useState(true);
 
   function blankLine(): LineDraft {
-    return { product_id: "", quantity: "1", unit_cost: "0", lot_id: "", serial_number: "" };
+    return { product_id: "", quantity: "1", unit_cost: "0", lot_code: "", expires_at: "", serial_number: "" };
   }
 
   const needsFrom = type === "salida" || type === "traslado" || type === "ajuste_negativo";
@@ -339,7 +345,13 @@ function NewMovementDialog({ companyId, open, onOpenChange, onCreated }: {
   const { data: products = [] } = useQuery({
     queryKey: ["products-active", companyId],
     queryFn: async () => {
-      const { data } = await supabase.from("products").select("id, sku, name, cost_price").eq("company_id", companyId).eq("is_active", true).order("name").limit(500);
+      const { data } = await supabase.from("products")
+        .select("id, sku, name, cost_price, product_type, tracks_inventory")
+        .eq("company_id", companyId)
+        .eq("is_active", true)
+        .eq("tracks_inventory", true)
+        .order("name")
+        .limit(500);
       return data ?? [];
     },
   });
@@ -350,68 +362,46 @@ function NewMovementDialog({ companyId, open, onOpenChange, onCreated }: {
       return data ?? [];
     },
   });
-  const { data: lots = [] } = useQuery({
-    queryKey: ["lots", companyId],
-    queryFn: async () => {
-      const { data } = await supabase.from("product_lots" as any).select("id, lot_code, product_id").eq("company_id", companyId);
-      return (data ?? []) as any[];
-    },
-  });
-
   const createMut = useMutation({
     mutationFn: async () => {
       const cleanLines = lines.filter(l => l.product_id && Number(l.quantity) > 0);
-      if (cleanLines.length === 0) throw new Error("Agrega al menos una línea válida");
+      if (cleanLines.length === 0) throw new Error("Agrega al menos una linea valida");
       if (needsFrom && !warehouseFrom) throw new Error("Selecciona bodega origen");
       if (needsTo && !warehouseTo) throw new Error("Selecciona bodega destino");
       if (type === "traslado" && warehouseFrom === warehouseTo) throw new Error("Origen y destino deben ser distintos");
+      if ((type === "ajuste_positivo" || type === "ajuste_negativo") && !reason.trim()) throw new Error("Documenta el motivo del ajuste");
 
-      const { data: docNum, error: numErr } = await supabase.rpc("next_movement_number" as any, { _company_id: companyId, _type: type });
-      if (numErr) throw numErr;
-
-      const userId = (await supabase.auth.getUser()).data.user?.id;
-      const { data: mov, error: movErr } = await supabase.from("inventory_movements" as any).insert({
-        company_id: companyId,
-        doc_number: docNum,
-        movement_type: type,
-        movement_date: movementDate,
-        warehouse_from_id: needsFrom ? warehouseFrom : null,
-        warehouse_to_id: needsTo ? warehouseTo : null,
-        third_party_id: thirdParty || null,
-        reference: reference || null,
-        notes: notes || null,
-        created_by: userId,
-      }).select("id").single();
-      if (movErr) throw movErr;
-
-      const { error: linesErr } = await supabase.from("inventory_movement_lines" as any).insert(
-        cleanLines.map(l => ({
-          movement_id: (mov as any).id,
+      const { error } = await supabase.rpc("create_inventory_movement_advanced" as any, {
+        _company_id: companyId,
+        _movement_type: type,
+        _warehouse_from_id: needsFrom ? warehouseFrom : null,
+        _warehouse_to_id: needsTo ? warehouseTo : null,
+        _third_party_id: thirdParty || null,
+        _reference: reference || null,
+        _notes: notes || null,
+        _reason: reason || null,
+        _movement_date: movementDate,
+        _lines: cleanLines.map(l => ({
           product_id: l.product_id,
           quantity: Number(l.quantity),
           unit_cost: Number(l.unit_cost),
-          lot_id: l.lot_id || null,
+          lot_code: l.lot_code || null,
+          expires_at: l.expires_at || null,
           serial_number: l.serial_number || null,
-        }))
-      );
-      if (linesErr) throw linesErr;
-
-      if (confirmNow) {
-        const { error: confErr } = await supabase.rpc("confirm_inventory_movement" as any, { _movement_id: (mov as any).id });
-        if (confErr) throw confErr;
-      }
+        })),
+        _confirm: confirmNow,
+      });
+      if (error) throw error;
     },
     onSuccess: () => {
       toast.success(confirmNow ? "Movimiento creado y confirmado" : "Movimiento guardado en borrador");
       onCreated();
       onOpenChange(false);
-      // reset
       setLines([blankLine()]);
-      setReference(""); setNotes(""); setThirdParty("");
+      setReference(""); setNotes(""); setReason(""); setThirdParty("");
     },
     onError: (e: any) => toast.error(e.message ?? "Error al crear movimiento"),
   });
-
   function updateLine(i: number, patch: Partial<LineDraft>) {
     setLines(prev => prev.map((l, idx) => idx === i ? { ...l, ...patch } : l));
   }
@@ -478,6 +468,12 @@ function NewMovementDialog({ companyId, open, onOpenChange, onCreated }: {
             <Label>Notas</Label>
             <Textarea rows={2} value={notes} onChange={e => setNotes(e.target.value)} />
           </div>
+          {(type === "ajuste_positivo" || type === "ajuste_negativo" || type === "traslado") && (
+            <div className="col-span-full">
+              <Label>Motivo / control interno *</Label>
+              <Input value={reason} onChange={e => setReason(e.target.value)} placeholder="Diferencia de conteo, traslado operativo, merma autorizada..." />
+            </div>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -495,14 +491,13 @@ function NewMovementDialog({ companyId, open, onOpenChange, onCreated }: {
                   <TableHead className="w-24">Cantidad</TableHead>
                   {needsCost && <TableHead className="w-28">Costo unit.</TableHead>}
                   <TableHead className="w-36">Lote</TableHead>
+                  <TableHead className="w-36">Vence</TableHead>
                   <TableHead className="w-32">Serial</TableHead>
                   <TableHead className="w-10"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {lines.map((l, i) => {
-                  const productLots = lots.filter((lot: any) => lot.product_id === l.product_id);
-                  return (
+                {lines.map((l, i) => (
                     <TableRow key={i}>
                       <TableCell>
                         <Select value={l.product_id} onValueChange={(v) => {
@@ -511,7 +506,7 @@ function NewMovementDialog({ companyId, open, onOpenChange, onCreated }: {
                         }}>
                           <SelectTrigger><SelectValue placeholder="Selecciona producto" /></SelectTrigger>
                           <SelectContent>
-                            {products.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.sku} — {p.name}</SelectItem>)}
+                            {products.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.sku} - {p.name}</SelectItem>)}
                           </SelectContent>
                         </Select>
                       </TableCell>
@@ -524,15 +519,13 @@ function NewMovementDialog({ companyId, open, onOpenChange, onCreated }: {
                         </TableCell>
                       )}
                       <TableCell>
-                        <Select value={l.lot_id} onValueChange={(v) => updateLine(i, { lot_id: v })} disabled={!l.product_id}>
-                          <SelectTrigger><SelectValue placeholder="(sin lote)" /></SelectTrigger>
-                          <SelectContent>
-                            {productLots.map((lot: any) => <SelectItem key={lot.id} value={lot.id}>{lot.lot_code}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
+                        <Input value={l.lot_code} onChange={e => updateLine(i, { lot_code: e.target.value })} placeholder="Lote" />
                       </TableCell>
                       <TableCell>
-                        <Input value={l.serial_number} onChange={e => updateLine(i, { serial_number: e.target.value })} placeholder="—" />
+                        <Input type="date" value={l.expires_at} onChange={e => updateLine(i, { expires_at: e.target.value })} />
+                      </TableCell>
+                      <TableCell>
+                        <Input value={l.serial_number} onChange={e => updateLine(i, { serial_number: e.target.value })} placeholder="Serial" />
                       </TableCell>
                       <TableCell>
                         <Button variant="ghost" size="icon" onClick={() => setLines(prev => prev.filter((_, idx) => idx !== i))}>
@@ -540,8 +533,7 @@ function NewMovementDialog({ companyId, open, onOpenChange, onCreated }: {
                         </Button>
                       </TableCell>
                     </TableRow>
-                  );
-                })}
+                ))}
               </TableBody>
             </Table>
           </div>
@@ -671,7 +663,13 @@ function KardexTab({ companyId }: { companyId: string }) {
   const { data: products = [] } = useQuery({
     queryKey: ["products-active", companyId],
     queryFn: async () => {
-      const { data } = await supabase.from("products").select("id, sku, name").eq("company_id", companyId).eq("is_active", true).order("name").limit(500);
+      const { data } = await supabase.from("products")
+        .select("id, sku, name, product_type, tracks_inventory")
+        .eq("company_id", companyId)
+        .eq("is_active", true)
+        .eq("tracks_inventory", true)
+        .order("name")
+        .limit(500);
       return data ?? [];
     },
   });
@@ -768,6 +766,131 @@ function KardexTab({ companyId }: { companyId: string }) {
 }
 
 /* ============================================================================
+ * TRAZABILIDAD
+ * ==========================================================================*/
+
+function TraceabilityTab({ companyId }: { companyId: string }) {
+  const [productId, setProductId] = useState("all");
+  const [warehouseId, setWarehouseId] = useState("all");
+  const [lotId, setLotId] = useState("all");
+
+  const { data: products = [] } = useQuery({
+    queryKey: ["products-trace", companyId],
+    queryFn: async () => {
+      const { data } = await supabase.from("products")
+        .select("id, sku, name, tracks_inventory")
+        .eq("company_id", companyId)
+        .eq("is_active", true)
+        .eq("tracks_inventory", true)
+        .order("name")
+        .limit(500);
+      return data ?? [];
+    },
+  });
+
+  const { data: warehouses = [] } = useQuery({
+    queryKey: ["warehouses-trace", companyId],
+    queryFn: async () => {
+      const { data } = await supabase.from("warehouses").select("id, code, name").eq("company_id", companyId).eq("is_active", true).order("name");
+      return data ?? [];
+    },
+  });
+
+  const { data: lots = [] } = useQuery({
+    queryKey: ["lots-trace", companyId, productId],
+    queryFn: async () => {
+      let q = supabase.from("product_lots" as any).select("id, lot_code, product_id").eq("company_id", companyId).order("created_at", { ascending: false });
+      if (productId !== "all") q = q.eq("product_id", productId);
+      const { data } = await q;
+      return (data ?? []) as any[];
+    },
+  });
+
+  const { data: rows = [], isLoading } = useQuery({
+    queryKey: ["inventory-trace", companyId, productId, warehouseId, lotId],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("report_inventory_trace" as any, {
+        _company_id: companyId,
+        _product_id: productId === "all" ? null : productId,
+        _warehouse_id: warehouseId === "all" ? null : warehouseId,
+        _lot_id: lotId === "all" ? null : lotId,
+      });
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-2">
+        <Select value={productId} onValueChange={(value) => { setProductId(value); setLotId("all"); }}>
+          <SelectTrigger className="w-80"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos los productos</SelectItem>
+            {products.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.sku} - {p.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={warehouseId} onValueChange={setWarehouseId}>
+          <SelectTrigger className="w-64"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas las bodegas</SelectItem>
+            {warehouses.map((w: any) => <SelectItem key={w.id} value={w.id}>{w.code} - {w.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={lotId} onValueChange={setLotId}>
+          <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos los lotes</SelectItem>
+            {lots.map((l: any) => <SelectItem key={l.id} value={l.id}>{l.lot_code}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="rounded-lg border border-border bg-surface">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Fecha</TableHead>
+              <TableHead>Documento</TableHead>
+              <TableHead>Tipo</TableHead>
+              <TableHead>Bodega</TableHead>
+              <TableHead>SKU</TableHead>
+              <TableHead>Lote</TableHead>
+              <TableHead>Dir.</TableHead>
+              <TableHead className="text-right">Cantidad</TableHead>
+              <TableHead className="text-right">Costo</TableHead>
+              <TableHead className="text-right">Saldo</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading && <TableRow><TableCell colSpan={10} className="text-center py-8 text-muted-foreground">Cargando...</TableCell></TableRow>}
+            {!isLoading && rows.length === 0 && <TableRow><TableCell colSpan={10} className="text-center py-10 text-muted-foreground">Sin trazabilidad para los filtros seleccionados.</TableCell></TableRow>}
+            {rows.map((row: any, index: number) => (
+              <TableRow key={`${row.doc_number}-${row.product_id}-${index}`}>
+                <TableCell>{row.movement_date}</TableCell>
+                <TableCell className="font-mono text-xs">{row.doc_number}</TableCell>
+                <TableCell>{TYPE_LABEL[row.movement_type as MovementType]}</TableCell>
+                <TableCell>{row.warehouse_name}</TableCell>
+                <TableCell className="font-mono text-xs">{row.sku}</TableCell>
+                <TableCell>{row.lot_code ?? "-"}</TableCell>
+                <TableCell>
+                  <Badge variant="outline" className={row.direction === "in" ? "bg-emerald-500/10 text-emerald-600" : "bg-rose-500/10 text-rose-600"}>
+                    {row.direction === "in" ? "Entrada" : "Salida"}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right font-mono">{fmt(row.quantity, 2)}</TableCell>
+                <TableCell className="text-right font-mono">{fmt(row.unit_cost)}</TableCell>
+                <TableCell className="text-right font-mono">{fmt(row.balance_qty, 2)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================================
  * LOTES
  * ==========================================================================*/
 
@@ -779,7 +902,13 @@ function LotesTab({ companyId }: { companyId: string }) {
   const { data: products = [] } = useQuery({
     queryKey: ["products-active", companyId],
     queryFn: async () => {
-      const { data } = await supabase.from("products").select("id, sku, name").eq("company_id", companyId).eq("is_active", true).order("name").limit(500);
+      const { data } = await supabase.from("products")
+        .select("id, sku, name, product_type, tracks_inventory")
+        .eq("company_id", companyId)
+        .eq("is_active", true)
+        .eq("tracks_inventory", true)
+        .order("name")
+        .limit(500);
       return data ?? [];
     },
   });
@@ -822,10 +951,11 @@ function LotesTab({ companyId }: { companyId: string }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button><Plus className="size-4 mr-2" /> Nuevo lote</Button>
-          </DialogTrigger>
+        <Can permission="inventory.operate">
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button><Plus className="size-4 mr-2" /> Nuevo lote</Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Nuevo lote</DialogTitle></DialogHeader>
             <div className="space-y-3">
@@ -856,7 +986,8 @@ function LotesTab({ companyId }: { companyId: string }) {
               <Button onClick={() => createMut.mutate()} disabled={createMut.isPending}>Crear lote</Button>
             </DialogFooter>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </Can>
       </div>
       <div className="rounded-lg border border-border bg-surface">
         <Table>

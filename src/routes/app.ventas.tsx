@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import {
-  Plus, Trash2, CheckCircle2, ShoppingBag, Receipt, Search, FileText,
+  Plus, Trash2, CheckCircle2, ShoppingBag, Receipt, Search, FileText, Printer, Ban, ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useActiveCompany } from "@/hooks/use-active-company";
+import { Can } from "@/components/erp/permission-gate";
 
 export const Route = createFileRoute("/app/ventas")({ component: VentasPage });
 
@@ -41,6 +42,18 @@ const AR_BADGE: Record<string, string> = {
   parcial: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200",
   cobrada: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200",
   anulada: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200",
+};
+const DOC_BADGE: Record<string, string> = {
+  borrador: "bg-muted text-muted-foreground",
+  emitido: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200",
+  convertido: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200",
+  anulado: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200",
+};
+const DOC_LABEL: Record<string, string> = {
+  cotizacion: "Cotizacion",
+  pedido: "Pedido",
+  remision: "Remision",
+  factura: "Factura",
 };
 
 function VentasPage() {
@@ -62,15 +75,541 @@ function VentasPage() {
         title="Ventas"
         description={`Facturas y CxC — ${activeCompany?.trade_name ?? activeCompany?.legal_name ?? ""}`}
       />
-      <Tabs defaultValue="ventas" className="space-y-4">
+      <Tabs defaultValue="documentos" className="space-y-4">
         <TabsList>
+          <TabsTrigger value="documentos"><FileText className="size-4 mr-2" /> Documentos</TabsTrigger>
           <TabsTrigger value="ventas"><FileText className="size-4 mr-2" /> Facturas</TabsTrigger>
           <TabsTrigger value="cxc"><Receipt className="size-4 mr-2" /> Cuentas por Cobrar</TabsTrigger>
         </TabsList>
+        <TabsContent value="documentos"><CommercialDocumentsTab companyId={activeCompanyId} /></TabsContent>
         <TabsContent value="ventas"><VentasTab companyId={activeCompanyId} /></TabsContent>
         <TabsContent value="cxc"><CxCTab companyId={activeCompanyId} /></TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+type CommercialDocLine = { product_id: string; quantity: number; unit_price: number; tax_percent: number; discount_percent: number; description?: string };
+
+function CommercialDocumentsTab({ companyId }: { companyId: string }) {
+  const qc = useQueryClient();
+  const [openNew, setOpenNew] = useState(false);
+  const [search, setSearch] = useState("");
+  const [docType, setDocType] = useState<string>("todos");
+  const [status, setStatus] = useState<string>("todos");
+  const [payload, setPayload] = useState<any>(null);
+  const from = new Date();
+  from.setDate(from.getDate() - 90);
+  const [fromDate, setFromDate] = useState(from.toISOString().slice(0, 10));
+  const [toDate, setToDate] = useState(() => new Date().toISOString().slice(0, 10));
+
+  const { data: docs, isLoading } = useQuery({
+    queryKey: ["commercial-documents", companyId, fromDate, toDate, docType, status],
+    queryFn: async () => {
+      const { data, error } = await sb.rpc("report_commercial_documents", {
+        _company_id: companyId,
+        _from: fromDate || null,
+        _to: toDate || null,
+        _doc_type: docType === "todos" ? null : docType,
+        _status: status === "todos" ? null : status,
+      });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["commercial-documents", companyId] });
+    qc.invalidateQueries({ queryKey: ["sales-orders", companyId] });
+    qc.invalidateQueries({ queryKey: ["accounts-receivable", companyId] });
+  };
+
+  const issueDoc = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await sb.rpc("issue_commercial_document", { _document_id: id });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidate();
+      toast.success("Documento emitido");
+    },
+    onError: (e: any) => toast.error(e.message ?? "Error al emitir"),
+  });
+
+  const convertDoc = useMutation({
+    mutationFn: async ({ id, target }: { id: string; target: string }) => {
+      const { error } = await sb.rpc("convert_commercial_document", { _document_id: id, _target_type: target });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidate();
+      toast.success("Documento convertido");
+    },
+    onError: (e: any) => toast.error(e.message ?? "Error al convertir"),
+  });
+
+  const voidDoc = useMutation({
+    mutationFn: async ({ id, reason }: { id: string; reason: string }) => {
+      const { error } = await sb.rpc("void_commercial_document", { _document_id: id, _reason: reason });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidate();
+      toast.success("Documento anulado");
+    },
+    onError: (e: any) => toast.error(e.message ?? "Error al anular"),
+  });
+
+  const loadPayload = useMutation({
+    mutationFn: async (id: string) => {
+      const { data, error } = await sb.rpc("get_commercial_document_payload", { _document_id: id });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: setPayload,
+    onError: (e: any) => toast.error(e.message ?? "Error al cargar documento"),
+  });
+
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    return (docs ?? []).filter((d: any) =>
+      !q || d.doc_number?.toLowerCase().includes(q) || d.customer_name?.toLowerCase().includes(q)
+    );
+  }, [docs, search]);
+
+  const targetFor = (type: string) => {
+    if (type === "cotizacion") return "pedido";
+    if (type === "pedido") return "remision";
+    if (type === "remision") return "factura";
+    return "";
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col xl:flex-row gap-2 xl:items-end xl:justify-between">
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 flex-1">
+          <div className="relative sm:col-span-2">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Input placeholder="Buscar documento o cliente..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+          </div>
+          <Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+          <Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
+          <Select value={docType} onValueChange={setDocType}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos los tipos</SelectItem>
+              <SelectItem value="cotizacion">Cotizaciones</SelectItem>
+              <SelectItem value="pedido">Pedidos</SelectItem>
+              <SelectItem value="remision">Remisiones</SelectItem>
+              <SelectItem value="factura">Facturas</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex gap-2">
+          <Select value={status} onValueChange={setStatus}>
+            <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos</SelectItem>
+              <SelectItem value="borrador">Borrador</SelectItem>
+              <SelectItem value="emitido">Emitido</SelectItem>
+              <SelectItem value="convertido">Convertido</SelectItem>
+              <SelectItem value="anulado">Anulado</SelectItem>
+            </SelectContent>
+          </Select>
+          <Can permission="sales.operate">
+            <Dialog open={openNew} onOpenChange={setOpenNew}>
+              <DialogTrigger asChild>
+                <Button><Plus className="size-4 mr-1" /> Nuevo</Button>
+              </DialogTrigger>
+              <NewCommercialDocumentDialog companyId={companyId} onClose={() => setOpenNew(false)} />
+            </Dialog>
+          </Can>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Documento</TableHead>
+              <TableHead>Fecha</TableHead>
+              <TableHead>Cliente</TableHead>
+              <TableHead>Bodega</TableHead>
+              <TableHead>Pago</TableHead>
+              <TableHead className="text-right">Total</TableHead>
+              <TableHead>Estado</TableHead>
+              <TableHead className="text-right">Acciones</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Cargando...</TableCell></TableRow>
+            ) : filtered.length === 0 ? (
+              <TableRow><TableCell colSpan={8}>
+                <EmptyState icon={FileText} title="Sin documentos comerciales" description="Crea cotizaciones, pedidos, remisiones o facturas desde este panel." />
+              </TableCell></TableRow>
+            ) : filtered.map((d: any) => {
+              const target = targetFor(d.doc_type);
+              return (
+                <TableRow key={d.id}>
+                  <TableCell>
+                    <div className="font-mono text-sm">{d.doc_number}</div>
+                    <div className="text-xs text-muted-foreground">{DOC_LABEL[d.doc_type] ?? d.doc_type}</div>
+                  </TableCell>
+                  <TableCell>{d.issue_date}</TableCell>
+                  <TableCell className="text-sm">{d.customer_name}</TableCell>
+                  <TableCell className="text-sm">{d.warehouse_name}</TableCell>
+                  <TableCell className="text-xs uppercase tracking-wide text-muted-foreground">{d.payment_method}</TableCell>
+                  <TableCell className="text-right font-medium">$ {fmt(d.total)}</TableCell>
+                  <TableCell><Badge variant="secondary" className={DOC_BADGE[d.status] ?? ""}>{d.status}</Badge></TableCell>
+                  <TableCell>
+                    <div className="flex justify-end gap-1">
+                      <Button size="icon" variant="ghost" title="Ver/imprimir" disabled={loadPayload.isPending} onClick={() => loadPayload.mutate(d.id)}>
+                        <Printer className="size-4" />
+                      </Button>
+                      {d.status === "borrador" && (
+                        <Can permission="sales.operate">
+                          <Button size="icon" variant="ghost" title="Emitir" disabled={issueDoc.isPending} onClick={() => issueDoc.mutate(d.id)}>
+                            <CheckCircle2 className="size-4" />
+                          </Button>
+                        </Can>
+                      )}
+                      {target && d.status !== "anulado" && d.status !== "convertido" && (
+                        <Can permission="sales.operate">
+                          <Button size="icon" variant="ghost" title={`Convertir a ${DOC_LABEL[target]}`} disabled={convertDoc.isPending} onClick={() => convertDoc.mutate({ id: d.id, target })}>
+                            <ArrowRight className="size-4" />
+                          </Button>
+                        </Can>
+                      )}
+                      {(d.status === "borrador" || d.status === "emitido") && !d.sales_order_id && (
+                        <Can permission="sales.operate">
+                          <Button size="icon" variant="ghost" title="Anular" disabled={voidDoc.isPending} onClick={() => {
+                            const reason = window.prompt("Motivo de anulacion");
+                            if (reason) voidDoc.mutate({ id: d.id, reason });
+                          }}>
+                            <Ban className="size-4" />
+                          </Button>
+                        </Can>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+
+      <Dialog open={!!payload} onOpenChange={(open) => !open && setPayload(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader><DialogTitle>{payload?.document?.number} - {DOC_LABEL[payload?.document?.type] ?? payload?.document?.type}</DialogTitle></DialogHeader>
+          {payload && <CommercialDocumentPreview payload={payload} />}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPayload(null)}>Cerrar</Button>
+            <Button onClick={() => window.print()}><Printer className="size-4 mr-1" /> Imprimir</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function CommercialDocumentPreview({ payload }: { payload: any }) {
+  const lines = payload.lines ?? [];
+  return (
+    <div className="space-y-4 text-sm">
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <p className="font-semibold">{payload.company?.trade_name ?? payload.company?.legal_name}</p>
+          <p className="text-muted-foreground">NIT {payload.company?.tax_id ?? "N/A"}</p>
+        </div>
+        <div className="text-right">
+          <p className="font-semibold">{payload.customer?.trade_name ?? payload.customer?.legal_name ?? "Consumidor final"}</p>
+          <p className="text-muted-foreground">{payload.document?.issue_date}</p>
+        </div>
+      </div>
+      <div className="rounded-lg border border-border overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Item</TableHead>
+              <TableHead className="text-right">Cant.</TableHead>
+              <TableHead className="text-right">Precio</TableHead>
+              <TableHead className="text-right">Total</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {lines.map((l: any, i: number) => (
+              <TableRow key={`${l.product_id}-${i}`}>
+                <TableCell>
+                  <div>{l.description ?? l.name}</div>
+                  <div className="text-xs text-muted-foreground">{l.sku}</div>
+                </TableCell>
+                <TableCell className="text-right">{fmt(l.quantity)}</TableCell>
+                <TableCell className="text-right">$ {fmt(l.unit_price)}</TableCell>
+                <TableCell className="text-right font-medium">$ {fmt(l.total)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      <div className="ml-auto w-full max-w-xs space-y-1 text-right">
+        <div>Subtotal: <strong>$ {fmt(payload.document?.subtotal)}</strong></div>
+        <div>IVA: <strong>$ {fmt(payload.document?.tax_amount)}</strong></div>
+        <div>Descuento: <strong>$ {fmt(payload.document?.discount_amount)}</strong></div>
+        <div className="text-base">Total: <strong>$ {fmt(payload.document?.total)}</strong></div>
+      </div>
+      {(payload.document?.notes || payload.document?.terms) && (
+        <div className="text-xs text-muted-foreground">
+          {payload.document?.notes && <p>{payload.document.notes}</p>}
+          {payload.document?.terms && <p>{payload.document.terms}</p>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function NewCommercialDocumentDialog({ companyId, onClose }: { companyId: string; onClose: () => void }) {
+  const qc = useQueryClient();
+  const [documentType, setDocumentType] = useState<string>("cotizacion");
+  const [customerId, setCustomerId] = useState("");
+  const [warehouseId, setWarehouseId] = useState("");
+  const [issueDate, setIssueDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [dueDate, setDueDate] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<string>("credito");
+  const [notes, setNotes] = useState("");
+  const [terms, setTerms] = useState("");
+  const [lines, setLines] = useState<CommercialDocLine[]>([
+    { product_id: "", quantity: 1, unit_price: 0, tax_percent: 0, discount_percent: 0, description: "" },
+  ]);
+
+  const { data: customers } = useQuery({
+    queryKey: ["customers-commercial-doc", companyId],
+    queryFn: async () => {
+      const { data } = await sb.from("third_parties").select("id, legal_name, trade_name, tax_id")
+        .eq("company_id", companyId).in("kind", ["cliente", "ambos"]).order("legal_name");
+      return data ?? [];
+    },
+  });
+  const { data: warehouses } = useQuery({
+    queryKey: ["warehouses-commercial-doc", companyId],
+    queryFn: async () => {
+      const { data } = await sb.from("warehouses").select("id, name").eq("company_id", companyId).order("name");
+      return data ?? [];
+    },
+  });
+  const { data: products } = useQuery({
+    queryKey: ["products-commercial-doc", companyId],
+    queryFn: async () => {
+      const { data } = await sb.from("products")
+        .select("id, sku, name, sale_price, product_type, tracks_inventory, is_sellable")
+        .eq("company_id", companyId)
+        .eq("is_sellable", true)
+        .order("name")
+        .limit(500);
+      return data ?? [];
+    },
+  });
+
+  const totals = useMemo(() => {
+    let sub = 0, tax = 0, disc = 0;
+    for (const l of lines) {
+      const base = l.quantity * l.unit_price;
+      const discount = base * (l.discount_percent / 100);
+      const taxValue = (base - discount) * (l.tax_percent / 100);
+      sub += base;
+      disc += discount;
+      tax += taxValue;
+    }
+    return { sub, tax, disc, total: sub + tax - disc };
+  }, [lines]);
+
+  function selectProduct(i: number, productId: string) {
+    const p = products?.find((x: any) => x.id === productId);
+    setLines((ls) => ls.map((x, j) => j === i ? {
+      ...x,
+      product_id: productId,
+      unit_price: p?.sale_price ?? x.unit_price,
+      description: p?.name ?? x.description,
+    } : x));
+  }
+
+  const save = useMutation({
+    mutationFn: async ({ issue }: { issue: boolean }) => {
+      if (!warehouseId) throw new Error("Selecciona la bodega");
+      if (documentType === "factura" && paymentMethod === "credito" && !customerId) throw new Error("Factura a credito requiere cliente");
+      if (lines.some((l) => !l.product_id || l.quantity <= 0)) throw new Error("Completa las lineas del documento");
+
+      const { data: id, error } = await sb.rpc("create_commercial_document", {
+        _company_id: companyId,
+        _doc_type: documentType,
+        _customer_id: customerId || null,
+        _warehouse_id: warehouseId,
+        _issue_date: issueDate,
+        _due_date: dueDate || null,
+        _payment_method: paymentMethod,
+        _lines: lines,
+        _notes: notes || null,
+        _terms: terms || null,
+      });
+      if (error) throw error;
+      if (issue) {
+        const { error: issueError } = await sb.rpc("issue_commercial_document", { _document_id: id });
+        if (issueError) throw issueError;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["commercial-documents", companyId] });
+      qc.invalidateQueries({ queryKey: ["sales-orders", companyId] });
+      qc.invalidateQueries({ queryKey: ["accounts-receivable", companyId] });
+      toast.success("Documento guardado");
+      onClose();
+    },
+    onError: (e: any) => toast.error(e.message ?? "Error"),
+  });
+
+  return (
+    <DialogContent className="max-w-5xl">
+      <DialogHeader><DialogTitle>Nuevo documento comercial</DialogTitle></DialogHeader>
+      <div className="grid gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div>
+            <Label>Tipo</Label>
+            <Select value={documentType} onValueChange={setDocumentType}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cotizacion">Cotizacion</SelectItem>
+                <SelectItem value="pedido">Pedido</SelectItem>
+                <SelectItem value="remision">Remision</SelectItem>
+                <SelectItem value="factura">Factura</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Cliente</Label>
+            <Select value={customerId} onValueChange={setCustomerId}>
+              <SelectTrigger><SelectValue placeholder="Consumidor final..." /></SelectTrigger>
+              <SelectContent>
+                {(customers ?? []).map((c: any) => (
+                  <SelectItem key={c.id} value={c.id}>{c.trade_name ?? c.legal_name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Bodega *</Label>
+            <Select value={warehouseId} onValueChange={setWarehouseId}>
+              <SelectTrigger><SelectValue placeholder="Selecciona..." /></SelectTrigger>
+              <SelectContent>
+                {(warehouses ?? []).map((w: any) => (
+                  <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Pago</Label>
+            <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="efectivo">Efectivo</SelectItem>
+                <SelectItem value="tarjeta">Tarjeta</SelectItem>
+                <SelectItem value="transferencia">Transferencia</SelectItem>
+                <SelectItem value="credito">Credito</SelectItem>
+                <SelectItem value="mixto">Mixto</SelectItem>
+                <SelectItem value="otro">Otro</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Fecha</Label>
+            <Input type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} />
+          </div>
+          <div>
+            <Label>Vencimiento</Label>
+            <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[30%]">Producto</TableHead>
+                <TableHead>Descripcion</TableHead>
+                <TableHead className="text-right">Cant.</TableHead>
+                <TableHead className="text-right">Precio</TableHead>
+                <TableHead className="text-right">IVA %</TableHead>
+                <TableHead className="text-right">Desc %</TableHead>
+                <TableHead className="text-right">Total</TableHead>
+                <TableHead></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {lines.map((l, i) => {
+                const base = l.quantity * l.unit_price;
+                const total = base - (base * l.discount_percent / 100) + ((base - (base * l.discount_percent / 100)) * l.tax_percent / 100);
+                return (
+                  <TableRow key={i}>
+                    <TableCell>
+                      <Select value={l.product_id} onValueChange={(v) => selectProduct(i, v)}>
+                        <SelectTrigger><SelectValue placeholder="Producto..." /></SelectTrigger>
+                        <SelectContent>
+                          {(products ?? []).map((p: any) => (
+                            <SelectItem key={p.id} value={p.id}>{p.sku} - {p.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell><Input value={l.description ?? ""} onChange={(e) => setLines((ls) => ls.map((x, j) => j === i ? { ...x, description: e.target.value } : x))} /></TableCell>
+                    <TableCell><Input type="number" min={0} step="0.01" value={l.quantity} onChange={(e) => setLines((ls) => ls.map((x, j) => j === i ? { ...x, quantity: Number(e.target.value) } : x))} className="text-right" /></TableCell>
+                    <TableCell><Input type="number" min={0} step="0.01" value={l.unit_price} onChange={(e) => setLines((ls) => ls.map((x, j) => j === i ? { ...x, unit_price: Number(e.target.value) } : x))} className="text-right" /></TableCell>
+                    <TableCell><Input type="number" min={0} step="0.01" value={l.tax_percent} onChange={(e) => setLines((ls) => ls.map((x, j) => j === i ? { ...x, tax_percent: Number(e.target.value) } : x))} className="text-right" /></TableCell>
+                    <TableCell><Input type="number" min={0} step="0.01" value={l.discount_percent} onChange={(e) => setLines((ls) => ls.map((x, j) => j === i ? { ...x, discount_percent: Number(e.target.value) } : x))} className="text-right" /></TableCell>
+                    <TableCell className="text-right font-medium">$ {fmt(total)}</TableCell>
+                    <TableCell>
+                      <Button variant="ghost" size="icon" onClick={() => setLines((ls) => ls.length === 1 ? ls : ls.filter((_, j) => j !== i))}>
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+          <div className="p-3 border-t border-border flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+            <Button variant="outline" size="sm" onClick={() => setLines((ls) => [...ls, { product_id: "", quantity: 1, unit_price: 0, tax_percent: 0, discount_percent: 0, description: "" }])}>
+              <Plus className="size-4 mr-1" /> Agregar linea
+            </Button>
+            <div className="text-sm space-y-1 text-right">
+              <div>Subtotal: <strong>$ {fmt(totals.sub)}</strong></div>
+              <div>IVA: <strong>$ {fmt(totals.tax)}</strong></div>
+              <div>Descuento: <strong>$ {fmt(totals.disc)}</strong></div>
+              <div className="text-base">Total: <strong>$ {fmt(totals.total)}</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <Label>Notas</Label>
+            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+          </div>
+          <div>
+            <Label>Terminos</Label>
+            <Textarea value={terms} onChange={(e) => setTerms(e.target.value)} rows={2} />
+          </div>
+        </div>
+      </div>
+
+      <DialogFooter>
+        <Button variant="outline" onClick={onClose}>Cancelar</Button>
+        <Button variant="secondary" disabled={save.isPending} onClick={() => save.mutate({ issue: false })}>Guardar borrador</Button>
+        <Button disabled={save.isPending} onClick={() => save.mutate({ issue: true })}>
+          <CheckCircle2 className="size-4 mr-1" /> Guardar y emitir
+        </Button>
+      </DialogFooter>
+    </DialogContent>
   );
 }
 
@@ -122,12 +661,14 @@ function VentasTab({ companyId }: { companyId: string }) {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input placeholder="Buscar venta o cliente…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
-        <Dialog open={openNew} onOpenChange={setOpenNew}>
-          <DialogTrigger asChild>
-            <Button><Plus className="size-4 mr-1" /> Nueva venta</Button>
-          </DialogTrigger>
-          <NewSaleDialog companyId={companyId} onClose={() => setOpenNew(false)} />
-        </Dialog>
+        <Can permission="sales.operate">
+          <Dialog open={openNew} onOpenChange={setOpenNew}>
+            <DialogTrigger asChild>
+              <Button><Plus className="size-4 mr-1" /> Nueva venta</Button>
+            </DialogTrigger>
+            <NewSaleDialog companyId={companyId} onClose={() => setOpenNew(false)} />
+          </Dialog>
+        </Can>
       </div>
 
       <div className="rounded-xl border border-border bg-card overflow-hidden">
@@ -165,9 +706,11 @@ function VentasTab({ companyId }: { companyId: string }) {
                 <TableCell><Badge variant="secondary" className={SO_BADGE[s.status] ?? ""}>{s.status}</Badge></TableCell>
                 <TableCell>
                   {s.status === "borrador" && (
+                    <Can permission="sales.operate">
                     <Button size="sm" variant="outline" disabled={confirmSale.isPending} onClick={() => confirmSale.mutate(s.id)}>
                       <CheckCircle2 className="size-4 mr-1" /> Confirmar
                     </Button>
+                    </Can>
                   )}
                 </TableCell>
               </TableRow>
@@ -211,7 +754,12 @@ function NewSaleDialog({ companyId, onClose }: { companyId: string; onClose: () 
   const { data: products } = useQuery({
     queryKey: ["products-sale", companyId],
     queryFn: async () => {
-      const { data } = await sb.from("products").select("id, sku, name, sale_price").eq("company_id", companyId).order("name").limit(500);
+      const { data } = await sb.from("products")
+        .select("id, sku, name, sale_price, product_type, tracks_inventory, is_sellable")
+        .eq("company_id", companyId)
+        .eq("is_sellable", true)
+        .order("name")
+        .limit(500);
       return data ?? [];
     },
   });

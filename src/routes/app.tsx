@@ -17,6 +17,9 @@ import {
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { usePermissions } from "@/hooks/use-permissions";
+import { ROUTE_PERMISSIONS, type SecuredNavGroup } from "@/lib/permissions";
+import { EmptyState } from "@/components/erp/page-header";
 
 export const Route = createFileRoute("/app")({
   ssr: false,
@@ -28,63 +31,60 @@ export const Route = createFileRoute("/app")({
   component: AppLayout,
 });
 
-type NavItem = { label: string; to: string; icon: React.ComponentType<{ className?: string }>; badge?: string };
-type NavGroup = { label: string; items: NavItem[] };
-
-const NAV: NavGroup[] = [
+const NAV: SecuredNavGroup[] = [
   {
     label: "General",
     items: [
-      { label: "Dashboard", to: "/app", icon: LayoutDashboard },
+      { label: "Dashboard", to: "/app", icon: LayoutDashboard, permissions: "dashboard.view" },
     ],
   },
   {
     label: "Maestros",
     items: [
-      { label: "Productos", to: "/app/productos", icon: Package },
+      { label: "Productos", to: "/app/productos", icon: Package, permissions: "masters.view" },
       { label: "Categorías", to: "/app/categorias", icon: Tags },
-      { label: "Marcas", to: "/app/marcas", icon: Factory },
-      { label: "Unidades", to: "/app/unidades", icon: Ruler },
-      { label: "Terceros", to: "/app/terceros", icon: Users },
+      { label: "Marcas", to: "/app/marcas", icon: Factory, permissions: "masters.view" },
+      { label: "Unidades", to: "/app/unidades", icon: Ruler, permissions: "masters.view" },
+      { label: "Terceros", to: "/app/terceros", icon: Users, permissions: "masters.view" },
     ],
   },
   {
     label: "Operación",
     items: [
-      { label: "Bodegas", to: "/app/bodegas", icon: Warehouse },
-      { label: "Inventarios", to: "/app/inventarios", icon: Boxes },
-      { label: "Compras", to: "/app/compras", icon: ShoppingCart },
-      { label: "Ventas", to: "/app/ventas", icon: ShoppingBag },
-      { label: "Punto de venta", to: "/app/pos", icon: Store },
-      { label: "Tesorería", to: "/app/tesoreria", icon: Wallet },
+      { label: "Bodegas", to: "/app/bodegas", icon: Warehouse, permissions: "warehouses.view" },
+      { label: "Inventarios", to: "/app/inventarios", icon: Boxes, permissions: "inventory.view" },
+      { label: "Compras", to: "/app/compras", icon: ShoppingCart, permissions: "purchases.view" },
+      { label: "Ventas", to: "/app/ventas", icon: ShoppingBag, permissions: "sales.view" },
+      { label: "Punto de venta", to: "/app/pos", icon: Store, permissions: "pos.operate" },
+      { label: "Tesorería", to: "/app/tesoreria", icon: Wallet, permissions: "treasury.view" },
     ],
   },
   {
     label: "Finanzas",
     items: [
-      { label: "Gastos", to: "/app/gastos", icon: Receipt },
-      { label: "Contabilidad", to: "/app/contabilidad", icon: BookOpen },
+      { label: "Gastos", to: "/app/gastos", icon: Receipt, permissions: "accounting.view" },
+      { label: "Contabilidad", to: "/app/contabilidad", icon: BookOpen, permissions: "accounting.view" },
       { label: "Nómina", to: "/app/nomina", icon: UsersRound },
     ],
   },
   {
     label: "Analítica",
     items: [
-      { label: "Reportes / BI", to: "/app/reportes", icon: BarChart3 },
+      { label: "Reportes / BI", to: "/app/reportes", icon: BarChart3, permissions: "reports.view" },
     ],
   },
   {
     label: "Inteligencia",
     items: [
-      { label: "Asistente IA", to: "/app/asistente", icon: Bot, badge: "IA" },
-      { label: "Alertas", to: "/app/alertas", icon: Bell },
+      { label: "Asistente IA", to: "/app/asistente", icon: Bot, badge: "IA", permissions: "ai.use" },
+      { label: "Alertas", to: "/app/alertas", icon: Bell, permissions: "reports.view" },
     ],
   },
   {
     label: "Administración",
     items: [
-      { label: "Empresas", to: "/app/empresas", icon: Building2 },
-      { label: "Seguridad", to: "/app/seguridad", icon: ShieldCheck },
+      { label: "Empresas", to: "/app/empresas", icon: Building2, permissions: "companies.view" },
+      { label: "Seguridad", to: "/app/seguridad", icon: ShieldCheck, permissions: "security.view" },
       { label: "Geografía", to: "/app/geografia", icon: MapPin },
       { label: "Configuración", to: "/app/configuracion", icon: Settings },
     ],
@@ -98,8 +98,13 @@ function AppLayout() {
   const queryClient = useQueryClient();
   const { user } = Route.useRouteContext();
   const { companies, activeCompany, setActiveCompany, isLoading } = useActiveCompany();
+  const permissions = usePermissions(activeCompany?.id);
 
   const pathname = router.state.location.pathname;
+  const routePermission = Object.entries(ROUTE_PERMISSIONS)
+    .sort(([a], [b]) => b.length - a.length)
+    .find(([route]) => pathname === route || pathname.startsWith(route + "/"))?.[1];
+  const routeAllowed = !activeCompany?.id || !routePermission || permissions.can(routePermission);
 
   useEffect(() => {
     setMobileOpen(false);
@@ -127,6 +132,7 @@ function AppLayout() {
           collapsed={collapsed}
           onToggle={() => setCollapsed(!collapsed)}
           pathname={pathname}
+          can={permissions.can}
         />
       </aside>
 
@@ -138,7 +144,7 @@ function AppLayout() {
             onClick={() => setMobileOpen(false)}
           />
           <aside className="fixed inset-y-0 left-0 z-50 flex flex-col w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border lg:hidden">
-            <SidebarContent collapsed={false} pathname={pathname} onClose={() => setMobileOpen(false)} />
+            <SidebarContent collapsed={false} pathname={pathname} onClose={() => setMobileOpen(false)} can={permissions.can} />
           </aside>
         </>
       )}
@@ -221,7 +227,21 @@ function AppLayout() {
 
         <main className="p-4 lg:p-8">
           {showOnboarding ? <OnboardingBanner /> : null}
-          <Outlet />
+          {permissions.isLoading && activeCompany?.id ? (
+            <EmptyState
+              icon={ShieldCheck}
+              title="Validando permisos"
+              description="Estamos verificando tu acceso para esta empresa."
+            />
+          ) : routeAllowed ? (
+            <Outlet />
+          ) : (
+            <EmptyState
+              icon={ShieldCheck}
+              title="Acceso restringido"
+              description="Tu usuario no tiene permisos para abrir este módulo en la empresa activa."
+            />
+          )}
         </main>
       </div>
     </div>
@@ -233,12 +253,19 @@ function SidebarContent({
   onToggle,
   pathname,
   onClose,
+  can,
 }: {
   collapsed: boolean;
   onToggle?: () => void;
   pathname: string;
   onClose?: () => void;
+  can: ReturnType<typeof usePermissions>["can"];
 }) {
+  const visibleNav = NAV.map((group) => ({
+    ...group,
+    items: group.items.filter((item) => can(item.permissions ?? ROUTE_PERMISSIONS[item.to], item.mode)),
+  })).filter((group) => group.items.length > 0);
+
   return (
     <>
       <div className="h-14 flex items-center gap-2 px-3 border-b border-sidebar-border">
@@ -269,7 +296,7 @@ function SidebarContent({
       </div>
 
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
-        {NAV.map((group) => (
+        {visibleNav.map((group) => (
           <div key={group.label}>
             {!collapsed && (
               <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50">

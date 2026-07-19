@@ -21,10 +21,35 @@ import {
 } from "@/components/ui/table";
 import { useActiveCompany } from "@/hooks/use-active-company";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 
 export const Route = createFileRoute("/app/productos")({
   component: ProductosPage,
 });
+
+type ProductType = "physical" | "service" | "consumable";
+
+const PRODUCT_TYPE_LABEL: Record<ProductType, string> = {
+  physical: "Producto",
+  service: "Servicio",
+  consumable: "Consumo",
+};
+
+const PRODUCT_TYPE_BADGE: Record<ProductType, string> = {
+  physical: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200",
+  service: "bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-200",
+  consumable: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200",
+};
+
+function defaultsForProductType(productType: ProductType) {
+  if (productType === "service") {
+    return { product_type: productType, tracks_inventory: false, is_sellable: true, is_purchasable: true, min_stock: 0 };
+  }
+  if (productType === "consumable") {
+    return { product_type: productType, tracks_inventory: true, is_sellable: false, is_purchasable: true };
+  }
+  return { product_type: productType, tracks_inventory: true, is_sellable: true, is_purchasable: true };
+}
 
 function ProductosPage() {
   const qc = useQueryClient();
@@ -36,6 +61,10 @@ function ProductosPage() {
     sku: "", barcode: "", name: "", description: "",
     category_id: "", brand_id: "", uom_id: "",
     cost_price: 0, sale_price: 0, tax_rate: 19, min_stock: 0,
+    product_type: "physical" as ProductType,
+    tracks_inventory: true,
+    is_sellable: true,
+    is_purchasable: true,
   });
 
   const { data: products = [], isLoading } = useQuery({
@@ -51,7 +80,7 @@ function ProductosPage() {
       if (search) query = query.ilike("name", `%${search}%`);
       const { data, error } = await query;
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as any[];
     },
   });
 
@@ -83,7 +112,7 @@ function ProductosPage() {
     mutationFn: async () => {
       if (!activeCompanyId) throw new Error("Selecciona una empresa");
       if (!form.sku || !form.name) throw new Error("SKU y nombre son obligatorios");
-      const { error } = await supabase.from("products").insert({
+      const productPayload = {
         company_id: activeCompanyId,
         sku: form.sku,
         barcode: form.barcode || null,
@@ -95,8 +124,13 @@ function ProductosPage() {
         cost_price: form.cost_price,
         sale_price: form.sale_price,
         tax_rate: form.tax_rate,
-        min_stock: form.min_stock,
-      });
+        min_stock: form.tracks_inventory ? form.min_stock : 0,
+        product_type: form.product_type,
+        tracks_inventory: form.tracks_inventory,
+        is_sellable: form.is_sellable,
+        is_purchasable: form.is_purchasable,
+      };
+      const { error } = await (supabase as any).from("products").insert(productPayload);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -106,6 +140,10 @@ function ProductosPage() {
         sku: "", barcode: "", name: "", description: "",
         category_id: "", brand_id: "", uom_id: "",
         cost_price: 0, sale_price: 0, tax_rate: 19, min_stock: 0,
+        product_type: "physical",
+        tracks_inventory: true,
+        is_sellable: true,
+        is_purchasable: true,
       });
       qc.invalidateQueries({ queryKey: ["products"] });
     },
@@ -145,6 +183,31 @@ function ProductosPage() {
                 <div className="grid gap-1.5">
                   <Label>Nombre *</Label>
                   <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                  <div className="grid gap-1.5 md:col-span-2">
+                    <Label>Tipo *</Label>
+                    <Select value={form.product_type} onValueChange={(v) => setForm({ ...form, ...defaultsForProductType(v as ProductType) })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="physical">Producto</SelectItem>
+                        <SelectItem value="service">Servicio</SelectItem>
+                        <SelectItem value="consumable">Producto de consumo</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label>Vendible</Label>
+                    <div className="flex h-10 items-center rounded-md border border-input px-3">
+                      <Switch checked={form.is_sellable} onCheckedChange={(v) => setForm({ ...form, is_sellable: v })} />
+                    </div>
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label>Comprable</Label>
+                    <div className="flex h-10 items-center rounded-md border border-input px-3">
+                      <Switch checked={form.is_purchasable} onCheckedChange={(v) => setForm({ ...form, is_purchasable: v })} />
+                    </div>
+                  </div>
                 </div>
                 <div className="grid gap-1.5">
                   <Label>Descripción</Label>
@@ -194,8 +257,27 @@ function ProductosPage() {
                   </div>
                   <div className="grid gap-1.5">
                     <Label>Stock mín.</Label>
-                    <Input type="number" min="0" step="0.01" value={form.min_stock} onChange={(e) => setForm({ ...form, min_stock: parseFloat(e.target.value) || 0 })} />
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={form.min_stock}
+                      disabled={!form.tracks_inventory}
+                      onChange={(e) => setForm({ ...form, min_stock: parseFloat(e.target.value) || 0 })}
+                    />
                   </div>
+                </div>
+                <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
+                  <div>
+                    <Label>Controla inventario</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Los servicios no generan stock; productos y consumo si mueven kardex.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={form.tracks_inventory}
+                    disabled
+                  />
                 </div>
               </div>
               <DialogFooter>
@@ -231,6 +313,8 @@ function ProductosPage() {
                     <TableHead>Nombre</TableHead>
                     <TableHead>Categoría</TableHead>
                     <TableHead>Marca</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Uso</TableHead>
                     <TableHead className="text-right">Costo</TableHead>
                     <TableHead className="text-right">Precio</TableHead>
                     <TableHead className="text-right">Estado</TableHead>
@@ -246,6 +330,18 @@ function ProductosPage() {
                       </TableCell>
                       <TableCell className="text-muted-foreground">{(p.product_categories as { name: string } | null)?.name ?? "—"}</TableCell>
                       <TableCell className="text-muted-foreground">{(p.brands as { name: string } | null)?.name ?? "—"}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className={PRODUCT_TYPE_BADGE[(p.product_type ?? "physical") as ProductType]}>
+                          {PRODUCT_TYPE_LABEL[(p.product_type ?? "physical") as ProductType]}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          <Badge variant={p.tracks_inventory ? "default" : "outline"}>{p.tracks_inventory ? "Inventario" : "Sin stock"}</Badge>
+                          {p.is_sellable && <Badge variant="outline">Venta</Badge>}
+                          {p.is_purchasable && <Badge variant="outline">Compra</Badge>}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-right tabular-nums">{currency.format(Number(p.cost_price))}</TableCell>
                       <TableCell className="text-right tabular-nums font-medium">{currency.format(Number(p.sale_price))}</TableCell>
                       <TableCell className="text-right">

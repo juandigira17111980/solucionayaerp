@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useActiveCompany } from "@/hooks/use-active-company";
+import { Can } from "@/components/erp/permission-gate";
 
 export const Route = createFileRoute("/app/compras")({ component: ComprasPage });
 
@@ -118,12 +119,14 @@ function OrdenesTab({ companyId }: { companyId: string }) {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input placeholder="Buscar orden o proveedor…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
-        <Dialog open={openNew} onOpenChange={setOpenNew}>
-          <DialogTrigger asChild>
-            <Button><Plus className="size-4 mr-1" /> Nueva orden</Button>
-          </DialogTrigger>
-          <NewOrderDialog companyId={companyId} onClose={() => setOpenNew(false)} />
-        </Dialog>
+        <Can permission="purchases.operate">
+          <Dialog open={openNew} onOpenChange={setOpenNew}>
+            <DialogTrigger asChild>
+              <Button><Plus className="size-4 mr-1" /> Nueva orden</Button>
+            </DialogTrigger>
+            <NewOrderDialog companyId={companyId} onClose={() => setOpenNew(false)} />
+          </Dialog>
+        </Can>
       </div>
 
       <div className="rounded-xl border border-border bg-card overflow-hidden">
@@ -198,7 +201,12 @@ function NewOrderDialog({ companyId, onClose }: { companyId: string; onClose: ()
   const { data: products } = useQuery({
     queryKey: ["products-po", companyId],
     queryFn: async () => {
-      const { data } = await sb.from("products").select("id, sku, name").eq("company_id", companyId).order("name").limit(500);
+      const { data } = await sb.from("products")
+        .select("id, sku, name, product_type, tracks_inventory, is_purchasable")
+        .eq("company_id", companyId)
+        .eq("is_purchasable", true)
+        .order("name")
+        .limit(500);
       return data ?? [];
     },
   });
@@ -395,12 +403,14 @@ function RecepcionesTab({ companyId }: { companyId: string }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Dialog open={openNew} onOpenChange={setOpenNew}>
-          <DialogTrigger asChild>
-            <Button><Plus className="size-4 mr-1" /> Nueva recepción</Button>
-          </DialogTrigger>
-          <NewReceiptDialog companyId={companyId} onClose={() => setOpenNew(false)} />
-        </Dialog>
+        <Can permission="purchases.operate">
+          <Dialog open={openNew} onOpenChange={setOpenNew}>
+            <DialogTrigger asChild>
+              <Button><Plus className="size-4 mr-1" /> Nueva recepción</Button>
+            </DialogTrigger>
+            <NewReceiptDialog companyId={companyId} onClose={() => setOpenNew(false)} />
+          </Dialog>
+        </Can>
       </div>
 
       <div className="rounded-xl border border-border bg-card overflow-hidden">
@@ -439,9 +449,16 @@ function RecepcionesTab({ companyId }: { companyId: string }) {
                 </TableCell>
                 <TableCell>
                   {r.status === "borrador" && (
+                    <Can permission="purchases.operate">
                     <Button size="sm" variant="outline" disabled={confirmRec.isPending} onClick={() => confirmRec.mutate(r.id)}>
                       <CheckCircle2 className="size-4 mr-1" /> Confirmar
                     </Button>
+                    </Can>
+                  )}
+                  {r.status === "confirmada" && (
+                    <Can permission="purchases.operate">
+                      <PurchaseReturnDialog receipt={r} companyId={companyId} />
+                    </Can>
                   )}
                 </TableCell>
               </TableRow>
@@ -453,7 +470,135 @@ function RecepcionesTab({ companyId }: { companyId: string }) {
   );
 }
 
-type ReceiptLine = { purchase_order_line_id: string | null; product_id: string; quantity: number; unit_cost: number };
+type ReceiptLine = {
+  purchase_order_line_id: string | null;
+  product_id: string;
+  quantity: number;
+  unit_cost: number;
+  lot_code: string;
+  expires_at: string;
+};
+
+type PurchaseReturnLine = {
+  product_id: string;
+  product_label: string;
+  quantity: number;
+  max_quantity: number;
+  unit_cost: number;
+  lot_code: string;
+  expires_at: string;
+};
+
+function PurchaseReturnDialog({ receipt, companyId }: { receipt: any; companyId: string }) {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [notes, setNotes] = useState("");
+  const [lines, setLines] = useState<PurchaseReturnLine[]>([]);
+
+  useQuery({
+    queryKey: ["purchase-return-lines", receipt.id],
+    enabled: open,
+    queryFn: async () => {
+      const { data, error } = await sb.from("purchase_receipt_lines")
+        .select("*, product:products(sku,name), lot:product_lots(lot_code, expires_at)")
+        .eq("receipt_id", receipt.id);
+      if (error) throw error;
+      setLines((data ?? []).map((line: any) => ({
+        product_id: line.product_id,
+        product_label: `${line.product?.sku ?? ""} - ${line.product?.name ?? ""}`,
+        quantity: 0,
+        max_quantity: Number(line.quantity ?? 0),
+        unit_cost: Number(line.unit_cost ?? 0),
+        lot_code: line.lot_code ?? line.lot?.lot_code ?? "",
+        expires_at: line.expires_at ?? line.lot?.expires_at ?? "",
+      })));
+      return data ?? [];
+    },
+  });
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const payload = lines
+        .filter((line) => line.quantity > 0)
+        .map((line) => ({
+          product_id: line.product_id,
+          quantity: line.quantity,
+          unit_cost: line.unit_cost,
+          lot_code: line.lot_code || null,
+          expires_at: line.expires_at || null,
+        }));
+      if (payload.length === 0) throw new Error("Registra al menos una cantidad a devolver");
+      if (lines.some((line) => line.quantity > line.max_quantity)) throw new Error("La devolucion no puede superar lo recibido");
+      const { error } = await sb.rpc("create_purchase_return", {
+        _receipt_id: receipt.id,
+        _lines: payload,
+        _notes: notes || null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Devolucion registrada en inventario");
+      qc.invalidateQueries({ queryKey: ["purchase-receipts", companyId] });
+      qc.invalidateQueries({ queryKey: ["movements"] });
+      qc.invalidateQueries({ queryKey: ["stock"] });
+      qc.invalidateQueries({ queryKey: ["kardex"] });
+      setOpen(false);
+      setNotes("");
+    },
+    onError: (e: any) => toast.error(e.message ?? "Error al devolver"),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline">Devolver</Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader><DialogTitle>Devolucion de compra {receipt.doc_number}</DialogTitle></DialogHeader>
+        <div className="rounded-lg border border-border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Producto</TableHead>
+                <TableHead>Lote</TableHead>
+                <TableHead className="text-right">Recibido</TableHead>
+                <TableHead className="text-right">Devolver</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {lines.map((line, index) => (
+                <TableRow key={`${line.product_id}-${index}`}>
+                  <TableCell>{line.product_label}</TableCell>
+                  <TableCell>{line.lot_code || "-"}</TableCell>
+                  <TableCell className="text-right">{fmt(line.max_quantity, 2)}</TableCell>
+                  <TableCell>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={line.max_quantity}
+                      step="0.01"
+                      value={line.quantity}
+                      onChange={(e) => setLines((current) => current.map((item, i) => i === index ? { ...item, quantity: Number(e.target.value) } : item))}
+                      className="ml-auto w-32 text-right"
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+        <div>
+          <Label>Notas / soporte</Label>
+          <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Motivo, remision del proveedor o soporte interno" />
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+          <Button disabled={save.isPending} onClick={() => save.mutate()}>Registrar devolucion</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 function NewReceiptDialog({ companyId, onClose }: { companyId: string; onClose: () => void }) {
   const qc = useQueryClient();
@@ -495,7 +640,12 @@ function NewReceiptDialog({ companyId, onClose }: { companyId: string; onClose: 
   const { data: products } = useQuery({
     queryKey: ["products-rec", companyId],
     queryFn: async () => {
-      const { data } = await sb.from("products").select("id, sku, name").eq("company_id", companyId).order("name").limit(500);
+      const { data } = await sb.from("products")
+        .select("id, sku, name, product_type, tracks_inventory, is_purchasable")
+        .eq("company_id", companyId)
+        .eq("is_purchasable", true)
+        .order("name")
+        .limit(500);
       return data ?? [];
     },
   });
@@ -516,6 +666,8 @@ function NewReceiptDialog({ companyId, onClose }: { companyId: string; onClose: 
         purchase_order_line_id: l.id, product_id: l.product_id,
         quantity: Number(l.quantity) - Number(l.received_quantity),
         unit_cost: Number(l.unit_cost),
+        lot_code: "",
+        expires_at: "",
       })));
   }
 
@@ -538,6 +690,8 @@ function NewReceiptDialog({ companyId, onClose }: { companyId: string; onClose: 
         receipt_id: rec.id, purchase_order_line_id: l.purchase_order_line_id,
         product_id: l.product_id, quantity: l.quantity, unit_cost: l.unit_cost,
         subtotal: l.quantity * l.unit_cost,
+        lot_code: l.lot_code || null,
+        expires_at: l.expires_at || null,
       }));
       const { error: e2 } = await sb.from("purchase_receipt_lines").insert(payload);
       if (e2) throw e2;
@@ -617,13 +771,15 @@ function NewReceiptDialog({ companyId, onClose }: { companyId: string; onClose: 
                 <TableHead className="w-[50%]">Producto</TableHead>
                 <TableHead className="text-right">Cant.</TableHead>
                 <TableHead className="text-right">Costo unit.</TableHead>
+                <TableHead>Lote</TableHead>
+                <TableHead>Vence</TableHead>
                 <TableHead className="text-right">Subtotal</TableHead>
                 <TableHead></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {lines.length === 0 && (
-                <TableRow><TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-6">Agrega líneas o selecciona una OC.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-6">Agrega líneas o selecciona una OC.</TableCell></TableRow>
               )}
               {lines.map((l, i) => (
                 <TableRow key={i}>
@@ -639,6 +795,8 @@ function NewReceiptDialog({ companyId, onClose }: { companyId: string; onClose: 
                   </TableCell>
                   <TableCell><Input type="number" min={0} step="0.01" value={l.quantity} onChange={(e) => setLines((ls) => ls.map((x, j) => j === i ? { ...x, quantity: Number(e.target.value) } : x))} className="text-right" /></TableCell>
                   <TableCell><Input type="number" min={0} step="0.01" value={l.unit_cost} onChange={(e) => setLines((ls) => ls.map((x, j) => j === i ? { ...x, unit_cost: Number(e.target.value) } : x))} className="text-right" /></TableCell>
+                  <TableCell><Input value={l.lot_code} onChange={(e) => setLines((ls) => ls.map((x, j) => j === i ? { ...x, lot_code: e.target.value } : x))} placeholder="Lote" /></TableCell>
+                  <TableCell><Input type="date" value={l.expires_at} onChange={(e) => setLines((ls) => ls.map((x, j) => j === i ? { ...x, expires_at: e.target.value } : x))} /></TableCell>
                   <TableCell className="text-right font-medium">$ {fmt(l.quantity * l.unit_cost)}</TableCell>
                   <TableCell>
                     <Button variant="ghost" size="icon" onClick={() => setLines((ls) => ls.filter((_, j) => j !== i))}><Trash2 className="size-4" /></Button>
@@ -648,7 +806,7 @@ function NewReceiptDialog({ companyId, onClose }: { companyId: string; onClose: 
             </TableBody>
           </Table>
           <div className="p-3 border-t border-border flex items-center justify-between">
-            <Button variant="outline" size="sm" onClick={() => setLines((ls) => [...ls, { purchase_order_line_id: null, product_id: "", quantity: 1, unit_cost: 0 }])}>
+            <Button variant="outline" size="sm" onClick={() => setLines((ls) => [...ls, { purchase_order_line_id: null, product_id: "", quantity: 1, unit_cost: 0, lot_code: "", expires_at: "" }])}>
               <Plus className="size-4 mr-1" /> Agregar línea
             </Button>
             <div className="text-base">Total: <strong>$ {fmt(total)}</strong></div>
