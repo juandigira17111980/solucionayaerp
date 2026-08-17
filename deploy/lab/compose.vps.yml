@@ -12,7 +12,7 @@ services:
     container_name: solucionayaerp-lab
     restart: unless-stopped
     env_file:
-      - .env
+      - ../../.env
     environment:
       NODE_ENV: production
       HOST: 0.0.0.0
