@@ -1,0 +1,61 @@
+name: solucionayaerp-lab
+
+services:
+  web:
+    build:
+      context: ../..
+      dockerfile: deploy/lab/Dockerfile
+      args:
+        VITE_SUPABASE_PROJECT_ID: ${VITE_SUPABASE_PROJECT_ID}
+        VITE_SUPABASE_PUBLISHABLE_KEY: ${VITE_SUPABASE_PUBLISHABLE_KEY}
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+    container_name: solucionayaerp-lab
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3000
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 768m
+    cpus: 1.00
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/healthz').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - coolify
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=coolify
+      - traefik.http.middlewares.solucionayaerp-lab-gzip.compress=true
+      - traefik.http.middlewares.solucionayaerp-lab-https.redirectscheme.scheme=https
+      - traefik.http.routers.solucionayaerp-lab-http.entrypoints=http
+      - traefik.http.routers.solucionayaerp-lab-http.rule=Host(`solucionayaerp.lab.nexostack.app`)
+      - traefik.http.routers.solucionayaerp-lab-http.middlewares=solucionayaerp-lab-https
+      - traefik.http.routers.solucionayaerp-lab-http.service=solucionayaerp-lab
+      - traefik.http.routers.solucionayaerp-lab-https.entrypoints=https
+      - traefik.http.routers.solucionayaerp-lab-https.rule=Host(`solucionayaerp.lab.nexostack.app`)
+      - traefik.http.routers.solucionayaerp-lab-https.middlewares=solucionayaerp-lab-gzip
+      - traefik.http.routers.solucionayaerp-lab-https.service=solucionayaerp-lab
+      - traefik.http.routers.solucionayaerp-lab-https.tls=true
+      - traefik.http.routers.solucionayaerp-lab-https.tls.certresolver=letsencrypt
+      - traefik.http.services.solucionayaerp-lab.loadbalancer.server.port=3000
+
+networks:
+  coolify:
+    external: true
